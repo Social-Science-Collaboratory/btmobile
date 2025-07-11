@@ -1,0 +1,542 @@
+---
+title: "Power sim"
+author: "Anonymized for peer review (NC)"
+reviewer: "Anonymized for peer review (JT)"
+output: word_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r libraries}
+# load libraries
+library('tidyverse')
+library('here')
+library('lme4')
+library('ggplot2')
+library('parallel')
+
+
+# specify directory
+i_am('btmobile25a_pwr_LogsNQuads.Rmd')
+
+# set plotting theme
+theme_set(theme_classic()) 
+
+# turn off scientific notation
+options(scipen = 999)
+
+# set seed for reproducibility
+set.seed(1967)
+```
+
+# Open combined data
+```{r}
+DF <- 
+  readRDS(here('data',
+               'DF.full.combined.processed.Rds')
+          ) %>% 
+  
+  # focus on first three years
+  filter(response_time < (365*3)) %>% 
+  
+  # filter responses with Altmetric data
+#  filter(!is.na(policy.per)) %>%
+  
+  # inputs 0 into the entries that are missing Altmetric data
+  mutate(across(c(policy.per, news.per), ~ replace(., is.na(.), 0)))
+
+```
+
+
+# Simulation function
+Using pilot data, randomly samples n papers and test which model (quadratic or logarithmic) best fits the data.
+Returns best fitting model, value, and difference for weighted RMSE and BIC. 
+
+```{r}
+
+# Create simulation function that randomly samples the number of authors from the original dataframe and generates speed, citation, policy and news values based on model parameters
+sim <- function(n = 100000, DF = DF){
+
+  
+  # Randomly samples n papers from the original dataframe
+  sampled_data  <-  DF %>%
+    select(dataset, authors.n, citation.per, news.per, policy.per, speed.per) %>%
+    slice_sample(n = n) %>%
+    group_by(authors.n) %>%
+    mutate(weight = 1/n()) %>%
+    ungroup() 
+  
+    # Create the dataframe that will be populated with the best fitting model information for each outcome
+    outcome_df <- data.frame(
+      sample_size = numeric(),  # number of sampled papers
+      speed.wRMSE.model = character(),  # best fitting speed model according to the weighted Root Mean Squared Error
+      speed.wRMSE.value = numeric(),  # weighted Root Mean Squared Error of the best fitting model
+      speed.wRMSE.sig = numeric(), # Whether the paired t test comparison of weighted residuals between models was significant
+      speed.BIC.model = character(), # best fitting speed model according to the Bayesian Information Criteria
+      speed.BIC.value = numeric(), # BIC value of the best fitting model 
+      speed.BIC.diff = numeric(), # BIC difference between the two models
+      citation.wRMSE.model = character(), 
+      citation.wRMSE.value = numeric(), 
+      citation.wRMSE.sig = numeric(), 
+      citation.BIC.model = character(), 
+      citation.BIC.value = numeric(), 
+      citation.BIC.diff = numeric(),
+      policy.wRMSE.model = character(), 
+      policy.wRMSE.value = numeric(), 
+      policy.wRMSE.sig = numeric(), 
+      policy.BIC.model = character(), 
+      policy.BIC.value = numeric(), 
+      policy.BIC.diff = numeric(),
+      news.wRMSE.model = character(), 
+      news.wRMSE.value = numeric(), 
+      news.wRMSE.sig = numeric(), 
+      news.BIC.model = character(), 
+      news.BIC.value = numeric(), 
+      news.BIC.diff = numeric())
+    
+    outcome_df[1,] <- c(n, rep(NA, times = 24)) # fill in sample size
+  
+  # SPEED WEIGHTED REGRESSION MODELS
+
+  ## quadratic speed model
+  m.s.quad <-
+    lmer(speed.per ~ authors.n + I(authors.n ^ 2) + (1|dataset),
+      data = sampled_data,
+      weights = weight)
+  
+  ### extract the residuals, author number, weights, and calculate the weighted residuals
+  m.s.quad.res <- data.frame(group = "quad",
+                              authors.n = m.s.quad@frame$authors.n,
+                              res = residuals(m.s.quad),
+                              weight = m.s.quad@frame$`(weights)`) %>%
+    mutate(w.res = sqrt(weight*res^2))
+  
+  ## logarithmic speed model
+  m.s.log <-
+    lmer(speed.per ~ log(authors.n)  + (1|dataset),
+      data = sampled_data,
+      weights = weight)
+  
+  ### extract the residuals, author number, weights, and calculate the weighted residuals
+  m.s.log.res <- data.frame(group = "log",
+                             authors.n = exp(m.s.log@frame$`log(authors.n)`),
+                             res = residuals(m.s.log),
+                             weight = m.s.log@frame$`(weights)`) %>%
+    mutate(w.res = sqrt(weight*res^2))
+  
+  #Calculate the weighted Root Mean Square Error (wRMSE)
+  speed.wRMSE <- rbind(m.s.quad.res, m.s.log.res) %>%
+  group_by(group) %>%
+  summarise(wRMSE = sqrt(sum(w.res^2)/sum(weight)))
+  
+  # compare the weighted residuals from the two models using a paired t-test
+  speed.t <- t.test(m.s.quad.res$w.res, m.s.log.res$w.res,
+         paired = TRUE)
+  
+  # Get the BIC value of the best fitting model    
+  speed.BIC <- BIC(m.s.quad, m.s.log) 
+  
+  # best model according to wRMSE
+  outcome_df$speed.wRMSE.model <- 
+    speed.wRMSE %>%
+    slice_min(wRMSE) %>%
+    select(group) %>%
+    pull()
+  
+  # wRMSE value of the best fitting model  
+  outcome_df$speed.wRMSE.value <- 
+    speed.wRMSE %>%
+    slice_min(wRMSE) %>%
+    select(wRMSE) %>%
+    pull()
+
+  # significance of the weighted residuals paired t-test
+  outcome_df$speed.wRMSE.sig <- 
+    speed.t$p.value
+    
+  # best model according to BIC
+  outcome_df$speed.BIC.model <- 
+    speed.BIC %>%
+    slice_min(BIC) %>%
+    row.names() %>%
+    gsub("m.s.", "", .)
+    
+  # BIC value of the best fitting model
+  outcome_df$speed.BIC.value <- 
+    speed.BIC %>%
+    slice_min(BIC) %>%
+    select(BIC) %>%
+    pull()
+
+  # BIC difference between the two models
+  outcome_df$speed.BIC.diff <- 
+    abs(speed.BIC[1,2] - speed.BIC[2,2])
+
+
+  # CITATION WEIGHTED REGRESSION MODELS
+
+  ## quadratic citation model
+  m.c.quad <-
+    lmer(citation.per ~ authors.n + I(authors.n ^ 2) + (1|dataset),
+      data = sampled_data,
+      weights = weight)
+  
+  ### extract the residuals, author number, weights, and calculate the weighted residuals
+  m.c.quad.res <- data.frame(group = "quad",
+                              authors.n = m.c.quad@frame$authors.n,
+                              res = residuals(m.c.quad),
+                              weight = m.c.quad@frame$`(weights)`) %>%
+    mutate(w.res = sqrt(weight*res^2))
+  
+  ## logarithmic citation model
+  m.c.log <-
+    lmer(citation.per ~ log(authors.n)  + (1|dataset),
+      data = sampled_data,
+      weights = weight)
+  
+  ### extract the residuals, author number, weights, and calculate the weighted residuals
+  m.c.log.res <- data.frame(group = "log",
+                             authors.n = exp(m.c.log@frame$`log(authors.n)`),
+                             res = residuals(m.c.log),
+                             weight = m.c.log@frame$`(weights)`) %>%
+    mutate(w.res = sqrt(weight*res^2)) 
+  
+  #Calculate the weighted Root Mean Square Error (wRMSE)
+  citation.wRMSE <- rbind(m.c.quad.res, m.c.log.res) %>%
+  group_by(group) %>%
+  summarise(wRMSE = sqrt(sum(w.res^2)/sum(weight)))
+  
+  # compare the weighted residuals from the the two models using a paired t-test
+  citation.t <- t.test(m.c.quad.res$w.res, m.c.log.res$w.res,
+         paired = TRUE)
+  
+  # Get the BIC value of the two models  
+  citation.BIC <- BIC(m.c.quad, m.c.log) 
+  
+  # Populate the outcome dataframe with the citation outcomes
+  ## Best fitting model according to the wRMSE
+  outcome_df$citation.wRMSE.model <- 
+    citation.wRMSE %>%
+    slice_min(wRMSE) %>%
+    select(group) %>%
+    pull()
+    
+  ## wRMSE value of the best fitting model
+  outcome_df$citation.wRMSE.value <- 
+    citation.wRMSE %>%
+    slice_min(wRMSE) %>%
+    select(wRMSE) %>%
+    pull()
+
+  # significance level of the weighted residuals paired t-test
+  outcome_df$citation.wRMSE.sig <- 
+    citation.t$p.value
+    
+  # Best fitting model according to the BIC
+  outcome_df$citation.BIC.model <- 
+    citation.BIC %>%
+    slice_min(BIC) %>%
+    row.names() %>%
+    gsub("m.c.", "", .)
+    
+  # BIC value of the best fitting model
+  outcome_df$citation.BIC.value <- 
+    citation.BIC %>%
+    slice_min(BIC) %>%
+    select(BIC) %>%
+    pull()
+
+  # BIC difference between the two models
+  outcome_df$citation.BIC.diff <- 
+    abs(citation.BIC[1,2] - speed.BIC[2,2])
+
+  # POLICY WEIGHTED REGRESSION MODELS
+  
+  ## quadratic policy model
+  m.p.quad <-
+    lmer(policy.per ~ authors.n + I(authors.n ^ 2) + (1|dataset),
+      data = sampled_data,
+      weights = weight)
+  
+  ### extract the residuals, author number, weights, and calculate the weighted residuals
+  m.p.quad.res <- data.frame(group = "quad",
+                              authors.n = m.p.quad@frame$authors.n,
+                              res = residuals(m.p.quad),
+                              weight = m.p.quad@frame$`(weights)`) %>%
+    mutate(w.res = sqrt(weight*res^2))  
+  
+  ## logarithmic policy model
+  m.p.log <-
+    lmer(policy.per ~ log(authors.n)  + (1|dataset),
+      data = sampled_data,
+      weights = weight)
+  
+  ### extract the residuals, author number, weights, and calculate the weighted residuals
+  m.p.log.res <- data.frame(group = "log",
+                             authors.n = exp(m.p.log@frame$`log(authors.n)`),
+                             res = residuals(m.p.log),
+                             weight = m.p.log@frame$`(weights)`) %>%
+    mutate(w.res = sqrt(weight*res^2)) 
+  
+  #Calculate the weighted Root Mean Square Error (wRMSE)
+  policy.wRMSE <- rbind(m.p.quad.res, m.p.log.res) %>%
+  group_by(group) %>%
+  summarise(wRMSE = sqrt(sum(w.res^2)/sum(weight)))
+  
+  # compare the weighted squared residuals from the two models using a paired t-test
+  policy.t <- t.test(m.p.quad.res$w.res, m.p.log.res$w.res,
+         paired = TRUE)
+  
+  ### Get the BIC for the two policy models  
+  policy.BIC <- BIC(m.p.quad, m.p.log) 
+  
+  # Populate the outcome dataframe with the policy outcomes
+  ## Best fitting model according to the wRMSE
+  outcome_df$policy.wRMSE.model <- 
+    policy.wRMSE %>%
+    slice_min(wRMSE) %>%
+    select(group) %>%
+    pull()
+    
+  ## wRMSE value of the best fitting model
+  outcome_df$policy.wRMSE.value <- 
+    policy.wRMSE %>%
+    slice_min(wRMSE) %>%
+    select(wRMSE) %>%
+    pull()
+
+  ## significance level of the weighted residuals paired t-test
+  outcome_df$policy.wRMSE.sig <- 
+    policy.t$p.value
+    
+  ## Best fitting model according to the BIC
+  outcome_df$policy.BIC.model <- 
+    policy.BIC %>%
+    slice_min(BIC) %>%
+    row.names() %>%
+    gsub("m.p.", "", .)
+    
+  ## BIC value of the best fitting model
+  outcome_df$policy.BIC.value <- 
+    policy.BIC %>%
+    slice_min(BIC) %>%
+    select(BIC) %>%
+    pull()
+
+  ## BIC difference between the two models
+  outcome_df$policy.BIC.diff <- 
+    abs(policy.BIC[1,2] - speed.BIC[2,2])
+  
+  # NEWS WEIGHTED REGRESSION MODEL
+  
+  ## quadratic news model
+  m.n.quad <-
+    lmer(news.per ~ authors.n + I(authors.n ^ 2) + (1|dataset),
+      data = sampled_data,
+      weights = weight)
+  
+  ### extract the residuals, author number, weights, and calculate the weighted residuals
+  m.n.quad.res <- data.frame(group = "quad",
+                              authors.n = m.n.quad@frame$authors.n,
+                              res = residuals(m.n.quad),
+                              weight = m.n.quad@frame$`(weights)`) %>%
+    mutate(w.res = sqrt(weight*res^2)) 
+  
+  ## logarithmic news model
+  m.n.log <-
+    lmer(news.per ~ log(authors.n)  + (1|dataset),
+      data = sampled_data,
+      weights = weight)
+  
+  ### extract the residuals, author number, weights, and calculate the weighted residuals
+  m.n.log.res <- data.frame(group = "log",
+                             authors.n = exp(m.n.log@frame$`log(authors.n)`),
+                             res = residuals(m.n.log),
+                             weight = m.n.log@frame$`(weights)`) %>%
+    mutate(w.res = sqrt(weight*res^2))  
+  
+  #Calculate the weighted Root Mean Square Error (wRMSE)
+  news.wRMSE <- rbind(m.n.quad.res, m.n.log.res) %>%
+  group_by(group) %>%
+  summarise(wRMSE = sqrt(sum(w.res^2)/sum(weight)))
+  
+  # compare the weighted squared residuals from the the two models
+  news.t <- t.test(m.n.quad.res$w.res, m.n.log.res$w.res,
+         paired = TRUE)
+  
+  # Get the BIC for the two models  
+  news.BIC <- BIC(m.n.quad, m.n.log) 
+  
+  # Populate the outcome dataframe with the news outcomes
+  ## Best fitting model according to the wRMSE
+  outcome_df$news.wRMSE.model <- 
+    news.wRMSE %>%
+    slice_min(wRMSE) %>%
+    select(group) %>%
+    pull()
+    
+  ## wRMSE value of the best fitting model
+  outcome_df$news.wRMSE.value <- 
+    news.wRMSE %>%
+    slice_min(wRMSE) %>%
+    select(wRMSE) %>%
+    pull()
+
+  ## significance level of the weighted residuals paired t-test
+  outcome_df$news.wRMSE.sig<- 
+    news.t$p.value
+    
+  ## Best fitting model according to the BIC
+  outcome_df$news.BIC.model <- 
+    news.BIC %>%
+    slice_min(BIC) %>%
+    row.names() %>%
+    gsub("m.n.", "", .)
+    
+  ## BIC value of the best fitting model
+  outcome_df$news.BIC.value <- 
+    news.BIC %>%
+    slice_min(BIC) %>%
+    select(BIC) %>%
+    pull()
+
+  ## BIC difference between the two models
+  outcome_df$news.BIC.diff <- 
+    abs(news.BIC[1,2] - speed.BIC[2,2])
+  
+  return(outcome_df)
+}
+```
+
+# Power simulation
+
+```{r}
+
+
+# save starting time to compute total execution time
+par_start_time <- Sys.time()
+
+# Check number of cores
+detectCores()
+
+# Determine the number of cores for parallelization
+numCores <- 15
+cl <- makeCluster(numCores)
+
+# Export the dataframe and the power simulation function
+clusterExport(cl, varlist = c("DF", "sim"))
+
+# Load libraries in all cores
+clusterEvalQ(cl, {
+  library('tidyverse')
+  library('lme4')
+})
+
+# choose number of iterations and sample sizes for simulation
+iterations <- 500
+sample_sizes <- c(100000, 400000, 700000, 1000000)
+
+# Note: execution time for 1 iteration, c(30000, 100000, 300000, 1000000) = 3.4 mins
+# execution time for 15 iterations, c(100000, 300000, 1000000) = 1.6 hours
+
+# creates a sample size list for the lapply function
+sample_size_list = rep(sample_sizes, each = iterations)
+
+# runs the power simulation for each sample size in the list and binds all elements into a single dataframe
+sim_outcome <- bind_rows(parLapply(cl, sample_size_list, function(n)
+  sim(n = n, DF = DF)))
+
+# free clusters
+stopCluster(cl)
+
+#calculate total processing time
+par_end_time <- Sys.time() 
+par_time <- par_end_time - par_start_time
+print(
+  paste(
+    "Time taken with parallel apply function: ",
+    par_time))
+
+```
+
+# Plot the power curve
+
+```{r}
+
+
+# Optional: save and load power dataframe after simulation
+# saveRDS(sim_outcome, "btmobile25a_sim_outcome_LogsNQuads.Rds")
+# sim_outcome <- readRDS("btmobile25a_sim_outcome_LogsNQuads.Rds")
+
+# Check 1) if the best fitting model from the wRMSE and BIC converge, 2) if the difference between the weighted residuals of the two models is significant, and 3) if the change in BIC is greater than 10
+sim_outcome <- sim_outcome %>%
+  mutate(
+    speed.model.converge = ifelse(
+      (speed.wRMSE.model == speed.BIC.model) &
+        (speed.wRMSE.sig < 0.05) &
+        (speed.BIC.diff > 10), 
+      speed.wRMSE.model, "fail"),
+    
+    citation.model.converge = ifelse(
+      (citation.wRMSE.model == citation.BIC.model) &
+        (citation.wRMSE.sig < 0.05) &
+        (citation.BIC.diff > 10), 
+      citation.wRMSE.model, "fail"),
+    
+    policy.model.converge = ifelse(
+      (policy.wRMSE.model == policy.BIC.model) &
+        (policy.wRMSE.sig < 0.05) &
+        (policy.BIC.diff > 10), 
+      policy.wRMSE.model, "fail"),
+    
+    news.model.converge = ifelse(
+      (news.wRMSE.model == news.BIC.model) &
+        (news.wRMSE.sig < 0.05) &
+        (news.BIC.diff > 10), 
+      news.wRMSE.model, "fail")
+    )
+
+
+# calculate the percentage of successful model convergence for each outcome of interest and prepare dataframe for ggplot
+power_df <- sim_outcome %>%
+  group_by(sample_size) %>%
+  summarise(
+    speed_quad = sum(speed.model.converge == "quad")/n(),
+    speed_log = sum(speed.model.converge == "log")/n(),
+    citation_quad = sum(citation.model.converge == "quad")/n(),
+    citation_log = sum(citation.model.converge == "log")/n(),
+    policy_quad = sum(policy.model.converge == "quad")/n(),
+    policy_log = sum(policy.model.converge == "log")/n(),
+    news_quad = sum(news.model.converge == "quad")/n(),
+    news_log = sum(news.model.converge == "log")/n()
+  ) %>%
+  pivot_longer(cols = -sample_size,
+               names_to = "model",
+               values_to = "power") %>%
+  mutate(outcome = case_when(
+    model %in% c("speed_quad", "speed_log") ~ "speed",
+    model %in% c("citation_quad", "citation_log") ~ "citation",
+    model %in% c("policy_quad", "policy_log") ~ "policy",
+    model %in% c("news_quad", "news_log") ~ "news"),
+    fit = case_when(
+    model %in% c("speed_quad", "citation_quad", "policy_quad", "news_quad") ~ "quad",
+    model %in% c("speed_log", "citation_log", "policy_log", "news_log") ~ "log"
+    )
+    )
+
+# plot the power curve with all effect sizes of interest
+ggplot(data = power_df, aes(x = sample_size, 
+               y = power, color = outcome, linetype = fit)) +
+  geom_line(size = 1, alpha = 0.5) +
+  scale_linetype_manual(values = c("dashed", "solid")) +
+  geom_point(size = 2, aes(shape = fit)) +
+  scale_shape_manual(values = c(17, 15)) +
+  geom_hline(yintercept = 0.95, linetype = "dotted", color = "black") +
+  coord_cartesian(ylim = c(0, 1)) +
+  theme_minimal() +
+  labs(color = "group", linetype = "fit", shape = "fit")
+
+```
+
+
+

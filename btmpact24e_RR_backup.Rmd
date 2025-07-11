@@ -1,0 +1,685 @@
+---
+output: word_document
+editor_options: 
+  chunk_output_type: console
+---
+This code is being used to plan for the Registered Report
+
+```{r libraries}
+# load libraries
+library('tidyverse')
+library('lme4')
+library('lmerTest')
+library('here')
+library('geomtextpath')
+library('grid')
+library('gridExtra')
+library('ggeffects')
+
+# specify directory
+i_am('btmpact24e_RR.Rmd')
+
+# set plotting theme
+theme_set(theme_classic()) 
+
+# turn off scientific notation
+options(scipen = 999)
+```
+
+# Open processed data
+```{r}
+DF <- 
+  readRDS('data/combined/DF.full.combined.processed.Rds')
+```
+
+## New analyses
+```{r}
+# Compute inverse frequency weights
+DF <- DF %>%
+  count(authors.n, name = "n_authors") %>%
+  mutate(inv_freq_weight = 1 / n_authors) %>%
+  right_join(DF, by = "authors.n") %>%
+  mutate(w = inv_freq_weight / mean(inv_freq_weight, na.rm = TRUE))
+```
+
+## Analyses
+
+### Speed (quadratic, raw and percentile)
+```{r}
+# fixed (quadratic)
+m.l <-
+  lmer(speed.per ~ authors.n +
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+lmer(speed ~ authors.n +
+         (1 | dataset),
+       weight = w,
+       data = DF) %>% 
+  summary()
+
+m.q <-
+  lmer(speed.per ~ authors.n + 
+         I(authors.n ^ 2) + 
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+m.log <-
+  lmer(speed.per ~ log(authors.n) +
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+BIC(m.l) - BIC(m.q)
+BIC(m.log) - BIC(m.q)
+
+# diff = 6093.532
+abs(AIC(m.q) - AIC(m.log))
+
+# vertex (49 researchers)
+coef <- fixef(m.q)
+-coef["authors.n"] / 
+  (2 * coef["I(authors.n^2)"])
+
+# z-score
+(48.92769 - mean(DF$authors.n)) / sd(DF$authors.n)
+
+ggplot(data = DF,
+       aes(x = authors.n,
+           y = response_time)) +
+  #geom_point() +
+  stat_smooth(method = 'lm',
+              aes(weight = w),
+              alpha = .5) +
+  stat_smooth(method = 'lm',
+              formula = y ~ x + I(x^2),
+              aes(weight = w),
+              alpha = .5) +
+  stat_smooth(method = 'lm',
+              formula = y ~ log(x),
+              aes(weight = w),
+              alpha = .5)
+
+rm(m.l, m.q, m.log)
+```
+
+### Scientific impact (logarithmic)
+```{r}
+m.l <-
+  lmer(citation.per ~ authors.n +
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+## for summarizing (B1 = 1.08)
+lmer(cited_by_count ~ authors.n +
+       (1 | dataset),
+     weight = w,
+     data = DF) %>% 
+  summary()
+
+m.q <-
+  lmer(citation.per ~ authors.n + 
+         I(authors.n ^ 2) +
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+m.log <-
+  lmer(citation.per ~ log(authors.n) + 
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+
+
+BIC(m.l) - BIC(m.log)
+BIC(m.q)- BIC(m.log)
+
+# diff = 5060.38
+abs(AIC(m.q) - AIC(m.log))
+
+ggplot(data = DF,
+       aes(x = authors.n,
+           y = citation.per)) +
+  stat_smooth(method = 'lm',
+              aes(weight = w),
+              alpha = .5) +
+  stat_smooth(method = 'lm',
+              formula = y ~ x + I(x^2),
+              aes(weight = w),
+              alpha = .5) +
+  stat_smooth(method = 'lm',
+              formula = y ~ log(x),
+              aes(weight = w),
+              alpha = .5)
+
+rm(m.l, m.q, m.log)
+```
+
+### News impact (quadratic, logarithmic when modeled raw)
+```{r}
+m.l <-
+  lmer(news.per ~ authors.n +
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+lmer(news ~ authors.n +
+         (1 | dataset),
+       weight = w,
+       data = DF) %>% 
+  summary()
+
+m.q <-
+  lmer(news.per ~ authors.n +
+         I(authors.n ^ 2) +
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+m.log <-
+  lmer(news.per ~ log(authors.n) +
+         I(authors.n ^ 2) +
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+BIC(m.l) - BIC(m.q)
+AIC(m.log) - BIC(m.q)
+
+# diff = 828.2312
+abs(AIC(m.q) - AIC(m.log))
+
+# vertex (75 researchers)
+coef <- fixef(m.q)
+-coef["authors.n"] / 
+  (2 * coef["I(authors.n^2)"])
+
+(74.84168 - mean(DF$authors.n)) / sd(DF$authors.n)
+
+
+ggplot(data = DF,
+       aes(x = authors.n,
+           y = news.per)) +
+  stat_smooth(method = 'lm',
+              formula = y ~ x + I(x^2),
+              aes(weight = w),
+              alpha = .5) +
+  stat_smooth(method = 'lm',
+              formula = y ~ log(x),
+              aes(weight = w),
+              alpha = .5)
+
+rm(m.l, m.q, m.log)
+```
+
+### Policy impact (quadratic, linear when raw)
+```{r}
+m.l <-
+  lmer(policy.per ~ authors.n +
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+lmer(policy ~ authors.n +
+       (1 | dataset),
+     weight = w,
+     data = DF) %>% 
+  summary()
+
+m.q <-
+  lmer(policy.per ~ authors.n + I(authors.n ^ 2) +
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+m.log <-
+  lmer(policy.per ~ log(authors.n) + 
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+
+BIC(m.l) - BIC(m.q)
+AIC(m.log) - BIC(m.q)
+
+
+# diff = 586.0303
+abs(AIC(m.q) - AIC(m.log))
+
+# vertex (85.21 researchers)
+coef <- fixef(m.q)
+-coef["authors.n"] / 
+  (2 * coef["I(authors.n^2)"])
+
+(85.0857 - mean(DF$authors.n)) / sd(DF$authors.n)
+
+ggplot(data = desc,
+       aes(x = authors.n,
+           y = m.pol)) +
+  geom_point() +
+  geom_smooth(method = 'lm',
+              alpha = .5) +
+  geom_smooth(method = 'lm',
+              formula = y ~ x + I(x^2),
+              alpha = .5)
+
+rm(m.l, m.q, m.log)
+```
+
+
+# Create new figure
+Specify final models
+```{r}
+# speed
+speed.m <-
+  lmer(speed.per ~ authors.n + 
+         I(authors.n ^ 2) + 
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+# scholarly citations
+schol.m <-
+  lmer(citation.per ~ authors.n +
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+# news citations
+news.m <-
+  lmer(news.per ~ authors.n +
+         I(authors.n ^ 2) +
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+# policy citations
+policy.m <-
+  lmer(policy.per ~ authors.n + I(authors.n ^ 2) +
+         (1 | dataset),
+       weight = w,
+       data = DF)
+```
+
+Extract predicted values
+```{r}
+speed <- 
+  predict_response(speed.m,
+                   terms="authors.n [all]") %>% 
+  as.data.frame() %>% 
+  mutate(outcome = 'response speed') %>% 
+  select(x, predicted, outcome)
+
+schol <- 
+  predict_response(schol.m,
+                   terms="authors.n [all]") %>% 
+  as.data.frame() %>% 
+  mutate(outcome = 'scholarly article citations') %>% 
+  select(x, predicted, outcome)
+
+news <- 
+  predict_response(news.m,
+                   terms="authors.n [all]") %>% 
+  as.data.frame() %>% 
+  mutate(outcome = 'news citations') %>% 
+  select(x, predicted, outcome)
+
+poli <-
+  predict_response(policy.m,
+                   terms="authors.n [all]") %>% 
+  as.data.frame() %>% 
+  mutate(outcome = 'policy document citations') %>% 
+  select(x, predicted, outcome)
+
+DF.fig <- rbind(speed, schol, news, poli)
+
+rm(speed, schol, news, poli,
+   speed.m, schol.m, policy.m, news.m)
+```
+
+
+```{r}
+ggplot(data = DF.fig,
+       aes(x = x,
+           y = predicted,
+           label = outcome)) +
+  
+  # citation
+  geom_textsmooth(
+    data = DF.fig %>% 
+      filter(outcome == 'scholarly article citations'),
+    method = 'lm',
+    formula = y ~ log(x),
+    alpha = .7,
+    color = '#CC79A7')+
+  
+  # news
+  geom_textsmooth(
+    data = DF.fig %>% 
+      filter(outcome == 'news citations'),
+    method = 'lm',
+    formula = y ~ x + I(x^2),
+    alpha = .7,
+    color = '#0072B2') +
+
+  
+  # policy
+  geom_textsmooth(
+    data = DF.fig %>% 
+      filter(outcome == 'policy document citations'),
+    method = 'lm',
+    formula = y ~ x + I(x^2),
+    alpha = .7,
+    color = '#D55E00') +
+  
+  # speed
+  geom_textsmooth(
+    data = DF.fig %>% 
+      filter(outcome == 'response speed'),
+    method = 'lm',
+    formula = y ~ x + I(x^2),
+    alpha = .7,
+    color = '#009E73') +
+  
+  labs(x = '# of co-authors',
+       y = "average percentile")
+```
+
+```{r}
+ggplot(data = DF,
+       aes(x = authors.n,
+           y = citation.per)) +
+  # citation data
+  stat_smooth(
+              method = 'lm',
+              formula = y ~ log(x),
+              aes(weight = w),
+              alpha = .5,
+              color = 'pink')
+```
+
+
+
+# Create figure
+## Calculate descriptives
+```{r}
+# calculate descriptives
+desc <- DF %>% 
+  group_by(dataset, size.bin) %>% 
+  summarise(n = n(),
+            
+            m.cit = mean(citation.per, na.rm = T),
+            sd.cit = sd(citation.per, na.rm = T),
+            
+            m.new = mean(news.per, na.rm = T),
+            sd.new = sd(news.per, na.rm = T),
+            
+            m.pol = mean(policy.per, na.rm = T),
+            sd.pol = sd(policy.per, na.rm = T),
+            
+            m.speed = mean(speed.per),
+            sd.speed = sd(speed.per, na.rm = T))
+
+# isolate COVID-19 descriptives and prepare for plotting
+desc.c <- desc %>% 
+  # isolate COVID-19 data
+  filter(dataset == 'covid') %>% 
+  
+  # select relevant variables
+  select(size.bin, m.cit, m.new, m.pol, m.speed) %>% 
+  
+  # pivot longer for plotting
+  pivot_longer(m.cit : m.speed) %>% 
+  
+  # fix naming
+  mutate(name = 
+           case_when(name == "m.cit" ~ "scholarly article mentions",
+                     name == "m.new" ~ "news output mentions",
+                     name == "m.pol" ~ "policy document mentions",
+                     name == "m.speed" ~ "response speed"
+                     )
+         )
+
+# isolate ChatGPT descriptives
+desc.a <- desc %>% 
+  # isolate ChatGPT data
+  filter(dataset == 'ai',
+         n > 40) %>% 
+  
+  # select relevant variables
+  select(size.bin, m.cit, m.new, m.pol, m.speed) %>% 
+  
+  # pivot longer for plotting
+  pivot_longer(m.cit : m.speed) %>% 
+  
+  # fix naming
+  mutate(name = 
+           case_when(name == "m.cit" ~ "scholarly article mentions",
+                     name == "m.new" ~ "news output mentions",
+                     name == "m.pol" ~ "policy document mentions",
+                     name == "m.speed" ~ "response speed"
+                     )
+         )
+
+# isolate terrorism descriptives
+desc.t <- desc %>% 
+  # isolate ChatGPT data
+  filter(dataset == 'terror',
+         n > 75) %>% 
+  
+  # select relevant variables
+  select(size.bin, m.cit, m.new, m.pol, m.speed) %>% 
+  
+  # pivot longer for plotting
+  pivot_longer(m.cit : m.speed) %>% 
+  
+  # fix naming
+  mutate(name = 
+           case_when(name == "m.cit" ~ "scholarly article mentions",
+                     name == "m.new" ~ "news output mentions",
+                     name == "m.pol" ~ "policy document mentions",
+                     name == "m.speed" ~ "response speed"
+                     )
+         )
+```
+
+## Plot terrorism data
+```{r}
+fig.t <- 
+  ggplot(data = desc.t,
+         aes(x = size.bin,
+             y = value,
+             color = name,
+             group = name,
+             fill = name,
+             label = name)) +
+  
+  # raw data points and connecting line
+  geom_point(alpha = .4) +
+  geom_line(alpha = .4) +
+  
+  # smoothed line (with limits on number of knots to get line to fit)
+  geom_smooth(method = 'gam',
+              alpha = .1,
+              size = .5,
+              formula = y ~ s(x, k = 4)) +
+  
+  # improve aesthetics
+  scale_fill_manual(values = c("#0072B2", "#D55E00", 
+                               "#009E73", '#CC79A7')) +
+  scale_color_manual(values = c("#0072B2", "#D55E00", 
+                                "#009E73", '#CC79A7')) +
+  
+  labs(title = 'terrorism',
+       y = "average percentile") +
+  ylim(0, 74) +
+  theme(axis.text.x = element_text(angle = 90, 
+                                   hjust = 1,
+                                   vjust = .5),
+        axis.title.x = element_blank(),
+        legend.position = 'none',
+        plot.title = element_text(hjust = 0.5))
+```
+
+
+## Plot COVID-19 data
+```{r}
+fig.c <- 
+  ggplot(data = desc.c,
+       aes(x = size.bin,
+           y = value,
+           color = name,
+           group = name,
+           fill = name,
+           label = name)) +
+  
+  # raw data points and connecting line
+  geom_point(alpha = .4) +
+  geom_line(alpha = .4) +
+  
+  # smoothed line
+  geom_smooth(method = 'gam',
+              alpha = .1,
+              color = NA) +
+  
+  # annotate meaning of line (instead of creating legend)
+  geom_textsmooth(method = 'gam',
+                  vjust = -1.5,
+                  size = 3) +
+  
+  # fix aesthetics
+  scale_fill_manual(values = c("#0072B2", "#D55E00", 
+                               "#009E73", '#CC79A7')) +
+  scale_color_manual(values = c("#0072B2", "#D55E00", 
+                                "#009E73", '#CC79A7')) +
+  labs(title = 'COVID-19',
+       y = "average percentile") +
+  ylim(0, 74) +
+  theme(axis.text.x = element_text(angle = 90, 
+                                   hjust = 1,
+                                   vjust = .5),
+        axis.title = element_blank(),
+        legend.position = 'none',
+        plot.title = element_text(hjust = 0.5),
+        axis.line.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_blank())
+
+#rm(desc.c)
+```
+
+## Plot ChatGPT data
+Create labeled raw differences
+```{r}
+desc.a2 <- 
+  DF %>% 
+  
+  # focus on comparing smallest and largest plotted team sizes
+  filter(dataset == "ai",
+         (size.bin == "1 - 4" | size.bin == "30 - 39")) %>% 
+  
+  # calculate summary statistics
+  group_by(size.bin) %>% 
+  summarise(m.cit = mean(cited_by_count, na.rm = T),
+            m.new = mean(news, na.rm = T),
+            m.pol = mean(policy, na.rm = T),
+            m.speed = mean(speed)) %>% 
+  select(size.bin, m.cit, m.new, m.pol, m.speed) %>% 
+  
+  # calculate mean difference between smallest and largest plotted team size 
+  summarise("scholarly article mentions" = m.cit[1] - m.cit[2],
+            "news output mentions" = m.new[1] - m.new[2],
+            "policy document mentions" = m.pol[1] - m.pol[2],
+            "response time" = m.speed[1] - m.speed[2]) %>% 
+  
+  # pivot longer for plotting
+  pivot_longer("scholarly article mentions" : "response time",
+               values_to = 'label') %>% 
+  
+  # improve label aesthetics
+  mutate(label = abs(label) %>% 
+           round(2),
+         label = if_else(name == 'response time',
+                         paste0(label, " days"),
+                         paste0(label, " mentions")
+                         )
+         ) 
+
+# connect label information to descriptives 
+# this helps determine plotting positions
+desc.a2 <- 
+  desc.a %>% 
+  
+  # focus on starting and end point in label
+  filter(size.bin == '1 - 4' |
+           size.bin == '30 - 39') %>% 
+  
+  # pivot wider for plotting
+  pivot_wider(names_from = size.bin,
+              values_from = value) %>% 
+  
+  # improve names
+  rename(y = '1 - 4',
+         yend = '30 - 39') %>% 
+  mutate(x = '1 - 4',
+         xend = '30 - 39') %>% 
+  
+  # left join
+  left_join(desc.a2,
+            by = 'name')
+```
+
+Create plot
+```{r}
+fig.a <- 
+  ggplot(data = desc.a,
+         aes(x = size.bin,
+             y = value,
+             color = name,
+             group = name,
+             fill = name,
+             label = name)) +
+  
+  # raw data points and connecting line
+  geom_point(alpha = .4) +
+  geom_line(alpha = .4) +
+  
+  # smoothed line (with limits on number of knots to get line to fit)
+  geom_smooth(method = 'gam',
+              alpha = .1,
+              size = .5,
+              formula = y ~ s(x, k = 4)) +
+  
+  # improve aesthetics
+  scale_fill_manual(values = c("#0072B2", "#D55E00", 
+                               "#009E73", '#CC79A7')) +
+  scale_color_manual(values = c("#0072B2", "#D55E00", 
+                                "#009E73", '#CC79A7')) +
+  
+  labs(title = 'ChatGPT',
+       y = "average percentile") +
+  ylim(0, 74) +
+  theme(axis.text.x = element_text(angle = 90, 
+                                   hjust = 1,
+                                   vjust = .5),
+        axis.title = element_blank(),
+        axis.line.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_blank(),
+        legend.position = 'none',
+        plot.title = element_text(hjust = 0.5))
+```
+
+##  Combine
+```{r}
+arrangeGrob(fig.t, fig.c, fig.a,
+            ncol = 3,
+            bottom = textGrob("# of co-authors",
+                              gp = gpar(fontsize = 11)),
+            widths = c(.34, .4, .26)) %>% 
+  grid.draw()
+```

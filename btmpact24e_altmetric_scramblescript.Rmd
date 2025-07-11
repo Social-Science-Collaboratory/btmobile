@@ -1,0 +1,197 @@
+---
+title: "Scramble proprietary Altmetric data for sharing"
+author: "Anonymized for peer review (NC)"
+reviewer: "Anonymized for peer review (JT)"
+output: word_document
+editor_options: 
+  chunk_output_type: console
+---
+This code scrambles proprietary Altmetric data for sharing
+
+# Load packages and settings
+```{r set.env}
+# load packages
+library('tidyverse')
+library('here')
+library('readxl')
+library('here')
+
+# set seed for reproducibility
+set.seed(1967)
+```
+
+# Raw data: Import and prep Altmetric data
+## ChatGPT
+```{r}
+alt.cgpt <- 
+  # open
+  read.csv(here("data", 
+                "cgpt", 
+                "btmpact24e_altmetric_cgpt.csv")) %>% 
+  
+  # select relevant variables
+  select(DOI, News.mentions, Blog.mentions, 
+         Policy.mentions, X.mentions, Facebook.mentions)
+```
+
+## COVID-19
+```{r}
+alt.covid <-
+  # open
+  read.csv(here("data", 
+                "covid", 
+                "btmpact24e_altmetric_covid.csv")) %>% 
+  
+  # select relevant variables
+  select(DOI, News.mentions, Blog.mentions, 
+         Policy.mentions, X.mentions, Facebook.mentions)
+```
+
+## Terrorism
+```{r}
+alt.terror <-
+  # open
+  read.csv(here("data", 
+                "terrorism", 
+                "btmpact24e _altmetric_data_terrorism.csv")) %>% 
+  
+  # select relevant variables
+  select(DOI, News.mentions, Blog.mentions, 
+         Policy.mentions, X.mentions, Facebook.mentions)
+
+```
+
+# Raw data: Scramble, add random noise, and re-export Altmetric data
+## ChatGPT
+```{r}
+alt.cgpt <-
+  alt.cgpt %>% 
+  
+  # randomly reorder each key outcome -- and add noise
+  mutate(across(c("News.mentions", "Blog.mentions", 
+                  "Policy.mentions",  "X.mentions", 
+                  "Facebook.mentions"), 
+                # randomly sample (sample) and add uniform noise (runif)
+                ~ sample(.) + runif(n = nrow(alt.cgpt), 
+                                    max = 10)
+                )
+         )
+
+# export
+alt.cgpt %>% 
+  write.csv(here("data", 
+                 "cgpt", 
+                 "btmpact24e_altmetric_cgpt_scrambled.csv"),
+            row.names = F)
+```
+
+## COVID-19
+```{r}
+alt.covid <-
+  alt.covid %>% 
+  
+  # randomly reorder each key outcome -- and add noise
+  mutate(across(c("News.mentions", "Blog.mentions", 
+                  "Policy.mentions",  "X.mentions", 
+                  "Facebook.mentions"), 
+                # randomly sample (sample) and add noise (runif)
+                ~ sample(.) + runif(n = nrow(alt.covid), 
+                                    max = 10)
+                )
+         )
+
+# export
+alt.covid %>% 
+  write.csv(here("data", 
+                 "covid", 
+                 "btmpact24e_altmetric_covid_scrambled.csv"),
+            row.names = F)
+```
+
+## Terrorism
+```{r}
+alt.terror <-
+  alt.terror %>% 
+  
+  # randomly reorder each key outcome -- and add noise
+  mutate(across(c("News.mentions", "Blog.mentions", 
+                  "Policy.mentions",  "X.mentions", 
+                  "Facebook.mentions"), 
+                # randomly sample (sample) and add uniform noise (runif)
+                ~ sample(.) + runif(n = nrow(alt.terror), 
+                                    max = 10)
+                )
+         )
+
+# export
+alt.terror %>% 
+  write.csv(here("data", 
+                 "terrorism", 
+                 "btmpact24e_altmetric_terror_scrambled.csv"),
+            row.names = F)
+```
+
+```{r}
+# remove raw data from environment
+rm(alt.cgpt, alt.covid, alt.terror)
+```
+
+# Processed data: Import and prep datasets with Altmetric data
+## DF.alt.combined.Rds
+```{r}
+# open
+DF.alt.combined <-
+  readRDS(here('data',
+               'combined',
+               'DF.alt.combined.Rds')
+          ) 
+
+# randomly reorder each key outcome -- and add noise
+DF.alt.combined <- 
+  DF.alt.combined %>% 
+  mutate(across(c("News.mentions" : "Number.of.Dimensions.citations",
+                  "news" : "policy"), 
+                # randomly sample (sample) and add uniform noise (runif)
+                ~ sample(.) + runif(n = nrow(DF.alt.combined), 
+                                    max = 10)
+                )
+         )
+
+# re-export
+DF.alt.combined %>% 
+  saveRDS(here('data',
+               'combined',
+               'DF.alt.combined.scrambled.Rds'))
+
+# remove
+rm(DF.alt.combined)
+```
+
+## DF.full.combined.Rds
+```{r}
+# open
+DF.full.combined <-
+  readRDS(here('data',
+               'combined',
+               'DF.full.combined.Rds')
+          ) 
+
+# randomly reorder each key outcome -- and add noise
+DF.full.combined <- 
+  DF.full.combined %>% 
+  mutate(across(c("News.mentions" : "Number.of.Dimensions.citations",
+                  "news" : "policy"), 
+                # randomly sample (sample) and add uniform noise (runif)
+                ~ sample(.) + runif(n = nrow(DF.full.combined), 
+                                    max = 10)
+                )
+         )
+
+# re-export
+DF.full.combined %>% 
+  saveRDS(here('data',
+               'combined',
+               'DF.full.combined.scrambled.Rds'))
+
+rm(DF.full.combined)
+```

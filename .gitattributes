@@ -1,0 +1,9 @@
+# Normalize R Markdown files and other text-based files
+*.Rmd text eol=lf
+*.R text eol=lf
+*.Rapp.history eol=lf
+*.drawio eol=lf
+*.bkp eol=lf
+*.txt eol=lf
+*.csv text eol=lf
+data/combined/DF.full.combined.processed.Rds filter=lfs diff=lfs merge=lfs -text

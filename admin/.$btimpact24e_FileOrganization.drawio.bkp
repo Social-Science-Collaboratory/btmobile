@@ -1,0 +1,126 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/26.0.9 Chrome/128.0.6613.186 Electron/32.2.5 Safari/537.36" version="26.0.9">
+  <diagram name="Page-1" id="vl-IJqzXdeP4moWUP0Z_">
+    <mxGraphModel dx="1026" dy="674" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="ZyMMh8aqc8fmREzCwDXi-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="ZyMMh8aqc8fmREzCwDXi-5" target="ZyMMh8aqc8fmREzCwDXi-8" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="660" y="130" />
+              <mxPoint x="530" y="130" />
+              <mxPoint x="530" y="210" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZyMMh8aqc8fmREzCwDXi-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="ZyMMh8aqc8fmREzCwDXi-3" target="ZyMMh8aqc8fmREzCwDXi-8" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Udg6lFjPiZcbS1DrdZ88-12" value="&lt;font style=&quot;font-size: 10px;&quot;&gt;exports&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="Udg6lFjPiZcbS1DrdZ88-1" target="Udg6lFjPiZcbS1DrdZ88-2" edge="1">
+          <mxGeometry x="-0.4" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZyMMh8aqc8fmREzCwDXi-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="Udg6lFjPiZcbS1DrdZ88-1" target="ZyMMh8aqc8fmREzCwDXi-1" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ZyMMh8aqc8fmREzCwDXi-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="Udg6lFjPiZcbS1DrdZ88-1" target="ZyMMh8aqc8fmREzCwDXi-3" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Udg6lFjPiZcbS1DrdZ88-1" value="&lt;u&gt;btmpact24e_api_cgpt.Rmd (...covid.Rmd &amp;amp; ...terrorism.Rmd)&lt;/u&gt;&lt;br&gt;&lt;div&gt;Compiles records from OpenAlex API&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=default;fontColor=#333333;strokeColor=#666666;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="40" y="100" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ZyMMh8aqc8fmREzCwDXi-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="Udg6lFjPiZcbS1DrdZ88-2" target="ZyMMh8aqc8fmREzCwDXi-5" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ZyMMh8aqc8fmREzCwDXi-7" value="&lt;font style=&quot;font-size: 10px;&quot;&gt;used for&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="ZyMMh8aqc8fmREzCwDXi-6" vertex="1" connectable="0">
+          <mxGeometry x="-0.1667" y="1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Udg6lFjPiZcbS1DrdZ88-2" value="&lt;div&gt;&lt;u&gt;btmpact24e_data_doi_cgpt.csv (...covid.csv, ...terrorism.csv)&lt;/u&gt;&lt;div&gt;DOI&#39;s for Altmetric pulls&lt;/div&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=default;fontColor=#333333;strokeColor=#666666;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="300" y="20" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Udg6lFjPiZcbS1DrdZ88-27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="10" y="200" />
+              <mxPoint x="10" y="400" />
+            </Array>
+            <mxPoint x="40" y="200" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZyMMh8aqc8fmREzCwDXi-9" value="&lt;font style=&quot;font-size: 10px;&quot;&gt;used for&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="ZyMMh8aqc8fmREzCwDXi-1" target="ZyMMh8aqc8fmREzCwDXi-8" edge="1">
+          <mxGeometry x="0.4" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZyMMh8aqc8fmREzCwDXi-1" value="&lt;div&gt;&lt;u&gt;btmpact24e_data_raw_cgpt.Rds (...covid.Rds, terrorism.Rds)&lt;/u&gt;&lt;div&gt;Raw API records&lt;/div&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=default;fontColor=#333333;strokeColor=#666666;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="300" y="100" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ZyMMh8aqc8fmREzCwDXi-3" value="&lt;u&gt;btmpact24e_data_binded_cgpt.Rds (...covid.Rds)&lt;/u&gt;&lt;div&gt;Sometimes API records had to be binded together&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=default;fontColor=#333333;strokeColor=#666666;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="300" y="180" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ZyMMh8aqc8fmREzCwDXi-5" value="&lt;u&gt;btmpact24e_altmetric_cgpt.csv (...covid.csv, ...terrorism.csv&lt;/u&gt;&lt;br&gt;&lt;div&gt;Manually extracted [proprietary] Altmetric data&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=default;fontColor=#333333;strokeColor=#666666;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="560" y="20" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ZyMMh8aqc8fmREzCwDXi-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="ZyMMh8aqc8fmREzCwDXi-8" target="ZyMMh8aqc8fmREzCwDXi-14" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ZyMMh8aqc8fmREzCwDXi-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="ZyMMh8aqc8fmREzCwDXi-8" target="ZyMMh8aqc8fmREzCwDXi-12" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ZyMMh8aqc8fmREzCwDXi-17" value="&lt;font style=&quot;font-size: 10px;&quot;&gt;exports&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="ZyMMh8aqc8fmREzCwDXi-8" target="ZyMMh8aqc8fmREzCwDXi-13" edge="1">
+          <mxGeometry x="-0.8667" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZyMMh8aqc8fmREzCwDXi-8" value="&lt;div&gt;&lt;u&gt;btmpact24e_combine.Rds&lt;/u&gt;&lt;div&gt;Combines Altmetric and OpenAlex data&lt;/div&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=default;fontColor=#333333;strokeColor=#666666;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="560" y="180" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="QxKKUaJP420yn0zlgnvT-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="ZyMMh8aqc8fmREzCwDXi-12" target="QxKKUaJP420yn0zlgnvT-1" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ZyMMh8aqc8fmREzCwDXi-12" value="&lt;u&gt;DF.oa.combined.Rds&lt;/u&gt;&lt;br&gt;&lt;div&gt;Combined OpenAlex data&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=default;fontColor=#333333;strokeColor=#666666;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="40" y="280" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="QxKKUaJP420yn0zlgnvT-4" value="&lt;font style=&quot;font-size: 10px;&quot;&gt;used in&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="ZyMMh8aqc8fmREzCwDXi-13" target="QxKKUaJP420yn0zlgnvT-1" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="QxKKUaJP420yn0zlgnvT-5" value="&lt;font style=&quot;font-size: 10px;&quot;&gt;used in&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="ZyMMh8aqc8fmREzCwDXi-13" target="QxKKUaJP420yn0zlgnvT-3" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="QxKKUaJP420yn0zlgnvT-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="ZyMMh8aqc8fmREzCwDXi-13" target="QxKKUaJP420yn0zlgnvT-2" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ZyMMh8aqc8fmREzCwDXi-13" value="&lt;u&gt;DF.alt.combined.Rds&lt;/u&gt;&lt;br&gt;&lt;div&gt;Combined Altmetric data&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=default;fontColor=#333333;strokeColor=#666666;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="300" y="280" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="QxKKUaJP420yn0zlgnvT-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="ZyMMh8aqc8fmREzCwDXi-14" target="QxKKUaJP420yn0zlgnvT-3" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ZyMMh8aqc8fmREzCwDXi-14" value="&lt;u&gt;DF.full.combined.Rds&lt;/u&gt;&lt;br&gt;&lt;div&gt;All data combined&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=default;fontColor=#333333;strokeColor=#666666;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="560" y="280" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="QxKKUaJP420yn0zlgnvT-1" value="&lt;u&gt;btmpact24e_figure.Rmd&lt;/u&gt;&lt;br&gt;&lt;div&gt;Makes main figure for paper&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=default;fontColor=#333333;strokeColor=#666666;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="40" y="380" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="QxKKUaJP420yn0zlgnvT-2" value="&lt;div&gt;&lt;u&gt;btmpact24e_paperrefs.Rmd&lt;/u&gt;&lt;/div&gt;&lt;div&gt;Code for reproducing results described in paper&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=default;fontColor=#333333;strokeColor=#666666;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="300" y="380" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="QxKKUaJP420yn0zlgnvT-3" value="&lt;div&gt;&lt;u&gt;btmpact24e_SI.Rmd&lt;/u&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Code for reproducing results and figures described in Supplemental Information&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=default;fontColor=#333333;strokeColor=#666666;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="560" y="380" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="-zFIzbAuybXxxrE7KLq0-3" value="&lt;font style=&quot;font-size: 10px;&quot;&gt;exports&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="-zFIzbAuybXxxrE7KLq0-1" target="-zFIzbAuybXxxrE7KLq0-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-zFIzbAuybXxxrE7KLq0-1" value="&lt;div&gt;&lt;u&gt;btmpact24e_altmetric_scramblescript.Rmd&lt;/u&gt;&lt;/div&gt;&lt;div&gt;Scrambles Altmetric data&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=default;fontColor=#333333;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="40" y="480" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="-zFIzbAuybXxxrE7KLq0-2" value="&lt;div&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;&lt;u&gt;btmpact24e_altmetric_cgpt_scrambled.csv&amp;nbsp;&lt;/u&gt;&lt;/span&gt;&lt;u&gt;(...covid.Rds, terrorism.Rds)&lt;/u&gt;&lt;div&gt;Scrambled Altmetric data. Original copies of data are available in an encrypted folder titled&amp;nbsp;altmetric.proprietary.encrypted.zip&lt;/div&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=default;fontColor=#333333;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="300" y="480" width="460" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
