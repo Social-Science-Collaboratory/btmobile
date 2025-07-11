@@ -1,0 +1,54 @@
+---
+title: "Use OpenAlex API to compile papers with keyword ChatGPT"
+author: "Anonymized for peer review (NC)"
+reviewer: "Anonymized for peer review (JT)"
+output: word_document
+editor_options: 
+  chunk_output_type: console
+---
+This code fetches papers from the OpenAlex API using keyword ChatGPT.
+
+# Load packages and settings
+```{r set.env}
+# load packages
+library('openalexR')
+library('tidyverse')
+library("jsonlite")
+
+# specify API mailing key (if applicable)
+# options(openalexR.mailto = "insert email here")
+```
+
+# Download records from API
+```{r download}
+# download raw data
+DF <- 
+  oa_fetch(entity = "works",
+           search = "ChatGPT",
+           output = "list"
+           )
+
+# export raw data
+saveRDS(DF,
+        "data/cgpt/btmpact24e_data_raw_cgpt.Rds")
+
+# export binded data
+DF <- DF %>% 
+  works2df() 
+
+DF %>% 
+  saveRDS('data/cgpt/btmpact24e_data_binded_cgpt.Rds')
+```
+
+# Export DOI's for Altmetric pulls
+```{r}
+# select variables of interest
+DF %>% 
+  select(id, doi) %>%
+  
+  # filter complete records
+  filter(doi != "") %>% 
+  
+write.csv("data/cgpt/btmpact24e_data_doi_cgpt.csv",
+          row.names = F)
+```
