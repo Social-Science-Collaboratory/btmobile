@@ -18,7 +18,7 @@ library('parallel')
 
 
 # specify directory
-i_am('analysis/power simulation/btmpact25a_pwr_weighted_WilcoxBIC.Rmd')
+i_am('btmpact25a_pwrsim.Rmd')
 
 # set plotting theme
 theme_set(theme_classic()) 
@@ -31,12 +31,9 @@ set.seed(1967)
 ```
 
 # Open combined data
-Note to John: fixed how here was working
-
-Also, I am considering backing away from inputting zeros as missing values, but it's fine to keep for now
 ```{r}
 DF <- 
-  readRDS(here('data', 'combined',
+  readRDS(here('data',
                'DF.full.combined.processed.Rds')
           ) %>% 
   
@@ -48,6 +45,7 @@ DF <-
   
   # inputs 0 into the entries that are missing Altmetric data
   mutate(across(c(policy.per, news.per), ~ replace(., is.na(.), 0)))
+
 ```
 
 
@@ -327,11 +325,8 @@ clusterEvalQ(cl, {
 })
 
 # choose number of iterations and sample sizes for simulation
-iterations <- 200
-sample_sizes <- c(1000, 3000, 10000, 30000, 100000, 300000)
-
-# Note: execution time for 1 iteration, c(30000, 100000, 300000, 1000000) = 3.4 mins
-# execution time for 15 iterations, c(100000, 300000, 1000000) = 1.6 hours
+iterations <- 1000
+sample_sizes <- c(1000, 3000, 10000, 30000, 100000, 300000, 350000)
 
 # creates a sample size list for the lapply function
 sample_size_list = rep(sample_sizes, each = iterations)
@@ -359,8 +354,8 @@ print(
 
 
 # Optional: save and load power dataframe after simulation
-# saveRDS(sim_outcome, "btmobile25a_sim_outcome_WilcoxonBIC.Rds")
-# sim_outcome <- readRDS("btmobile25a_sim_outcome_WilcoxonBIC.Rds")
+# saveRDS(sim_outcome, here("analysis", "power simulation",  "btmobile25a_pwrsim_outcome.Rds"))
+# sim_outcome <- readRDS(here("analysis", "power simulation",  "btmobile25a_pwrsim_outcome.Rds"))
 
 # Check if the change in BIC is greater than 10
 
@@ -383,21 +378,21 @@ sim_outcome <- sim_outcome %>%
     news.log.test = ifelse(news.log < 0.05, 
       1, 0),
     
-    speed.quad.BIC.test = ifelse(speed.quad.BIC > 10, 
+    speed.quad.BIC.test = ifelse(speed.quad.BIC > 5, 
       1, 0),
-    speed.log.BIC.test = ifelse(speed.log.BIC > 10, 
+    speed.log.BIC.test = ifelse(speed.log.BIC > 5, 
       1, 0),
-    citation.quad.BIC.test = ifelse(citation.quad.BIC > 10, 
+    citation.quad.BIC.test = ifelse(citation.quad.BIC > 5, 
       1, 0),
-    citation.log.BIC.test = ifelse(citation.log.BIC > 10, 
+    citation.log.BIC.test = ifelse(citation.log.BIC > 5, 
       1, 0),
-    policy.quad.BIC.test = ifelse(policy.quad.BIC > 10, 
+    policy.quad.BIC.test = ifelse(policy.quad.BIC > 5, 
       1, 0),
-    policy.log.BIC.test = ifelse(policy.log.BIC > 10, 
+    policy.log.BIC.test = ifelse(policy.log.BIC > 5, 
       1, 0),
-    news.quad.BIC.test = ifelse(news.quad.BIC > 10, 
+    news.quad.BIC.test = ifelse(news.quad.BIC > 5, 
       1, 0),
-    news.log.BIC.test = ifelse(news.log.BIC > 10, 
+    news.log.BIC.test = ifelse(news.log.BIC > 5, 
       1, 0)
     
     )
@@ -458,10 +453,10 @@ power_df <- sim_outcome %>%
     )
 
 # plot the power curve for the Wilcoxon signed-rank test comparisons
-quad_plot_w <- power_df %>%
-  filter(comparison == "wilcoxon" & fit == "quad") %>%
+plot_w <- power_df %>%
+  filter(model %in% c("speed_quad", "citation_log", "policy_quad", "news_quad")) %>%
 ggplot(data = ., aes(x = sample_size, 
-               y = power, color = outcome)) +
+               y = power, color = model)) +
   geom_line(size = 1, alpha = 0.7) +
   geom_point(size = 2, alpha = 0.7) +
   geom_hline(yintercept = 0.95, 
@@ -469,46 +464,18 @@ ggplot(data = ., aes(x = sample_size,
              color = "black") +
   coord_cartesian(ylim = c(0, 300000)) +
   coord_cartesian(ylim = c(0, 1.04)) +
-  theme_minimal() +
-  labs(color = "Outcome", x = "Sample size (log scale)", y = "Power") +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.title.x = element_blank()) +
+  labs(title = "Power Curve for Wilcoxon Test < 0.05", color = "Model", y = "Power") +
   scale_x_continuous(trans = "log10", labels = scales::label_number())
-
-log_plot_w <- power_df %>%
-  filter(comparison == "wilcoxon" & fit == "log") %>%
-ggplot(data = ., aes(x = sample_size, 
-               y = power, color = outcome)) +
-  geom_line(size = 1, alpha = 0.7) +
-  geom_point(size = 2, alpha = 0.7) +
-  geom_hline(yintercept = 0.95, 
-             linetype = "dotted", 
-             color = "black") +
-  coord_cartesian(ylim = c(0, 300000)) +
-  coord_cartesian(ylim = c(0, 1.04)) +
-  theme_minimal() +
-  labs(color = "Outcome", x = "Sample size (log scale)", y = "Power") +
-  scale_x_continuous(trans = "log10", labels = scales::label_number())
-
-title_w <- ggdraw() + 
-  draw_label(
-    "Power Curve for Wilcoxon signed-ranked test < .05",
-    fontface = 'bold',
-    x = 0,
-    hjust = 0
-  ) +
-  theme(
-    # add margin on the left of the drawing canvas,
-    # so title is aligned with left edge of first plot
-    plot.margin = margin(0, 0, 0, 7)
-  )
-
-plot_row_w <- plot_grid(quad_plot_w, log_plot_w, labels = c("Wilcoxon quadratic", "Wilcoxon logarithmic"), ncol = 2)
 
 
 # plot the power curve for the BIC comparisons
-quad_plot_b <- power_df %>%
-  filter(comparison == "BIC" & fit == "quad") %>%
+plot_b <- power_df %>%
+  filter(model %in% c("speed_quad_BIC", "citation_log_BIC", "policy_quad_BIC", "news_quad_BIC")) %>%
 ggplot(data = ., aes(x = sample_size, 
-               y = power, color = outcome)) +
+               y = power, color = model)) +
   geom_line(size = 1, alpha = 0.7) +
   geom_point(size = 2, alpha = 0.7) +
   geom_hline(yintercept = 0.95, 
@@ -516,45 +483,47 @@ ggplot(data = ., aes(x = sample_size,
              color = "black") +
   coord_cartesian(ylim = c(0, 300000)) +
   coord_cartesian(ylim = c(0, 1.04)) +
-  theme_minimal() +
-  labs(color = "Outcome", x = "Sample size (log scale)", y = "Power") +
-  scale_x_continuous(trans = "log10", labels = scales::label_number())
-
-log_plot_b <- power_df %>%
-  filter(comparison == "BIC" & fit == "log") %>%
-ggplot(data = ., aes(x = sample_size, 
-               y = power, color = outcome)) +
-  geom_line(size = 1, alpha = 0.7) +
-  geom_point(size = 2, alpha = 0.7) +
-  geom_hline(yintercept = 0.95, 
-             linetype = "dotted", 
-             color = "black") +
-  coord_cartesian(ylim = c(0, 300000)) +
-  coord_cartesian(ylim = c(0, 1.04)) +
-  theme_minimal() +
-  labs(color = "Outcome", x = "Sample size (log scale)", y = "Power") +
-  scale_x_continuous(trans = "log10", labels = scales::label_number())
-
-title_b <- ggdraw() + 
-  draw_label(
-    "Power Curve for BIC difference > 10",
-    fontface = 'bold',
-    x = 0,
-    hjust = 0
-  ) +
+  theme_classic() +
   theme(
-    # add margin on the left of the drawing canvas,
-    # so title is aligned with left edge of first plot
-    plot.margin = margin(0, 0, 0, 7)
+    axis.title.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.text.y = element_blank(),
+    axis.title.x = element_blank()
+  ) +
+  labs(title = "Power Curve for \u0394 BIC < -5", y = "Power") +
+  scale_x_continuous(trans = "log10", labels = scales::label_number()) +
+  scale_color_manual(
+    values = c("citation_log_BIC" = "#F8766D", 
+               "news_quad_BIC" = "#7CAE00", 
+               "policy_quad_BIC" = "#00BFC4", 
+               "speed_quad_BIC" = "#C77CFF"),
+    labels = c("citation_log_BIC" = "DV = Scholarly article citations;
+Model = Logarithmic", 
+               "news_quad_BIC" = "DV = News citations;
+Model = Quadratic", 
+               "policy_quad_BIC" = "DV = Policy citations;
+Model = Quadratic", 
+               "speed_quad_BIC" = "DV = Response speed;
+Model = Quadratic"),
+    name = "Dependent Variable 
+and Model Fit"
   )
 
-plot_row_b <- plot_grid(quad_plot_b, log_plot_b, labels = c("BIC quadratic", "BIC logarithmic"), ncol = 2)
+legend <- get_legend(plot_b + theme(legend.position = "right"))
 
-plot_grid(title_w, plot_row_w, title_b, plot_row_b, 
-          ncol = 1,   
-          # rel_heights values control vertical title margins
-          rel_heights = c(0.1, 1, 0.1, 1))
+plot_b <- plot_b + theme(legend.position = "none")
 
+plot_wb <- plot_grid(plot_w, plot_b, 
+                     rel_widths = c(1, 1), ncol = 2)
+
+plot_wb_label <- ggdraw() +
+  draw_plot(plot_wb, 0, 0.05, 1, 0.95) +  # position and size of plot
+  draw_text("Sample size (log scale)", x = 0.5, y = 0.02, fontface = "bold", size = 12)
+
+plot_final <- plot_grid(plot_wb_label, legend, 
+                        ncol = 2, rel_widths = c(2, 0.4))
+
+print(plot_final)
 
 ```
 

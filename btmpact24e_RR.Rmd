@@ -51,30 +51,36 @@ DF <- DF %>%
 Quadratic for AI (84 peak)
 linear for terrorism
 ```{r}
+# Test different model fits for the response speed data
+# linear model
 m.l <-
   lm(speed.per ~ authors.n,
        weight = w,
        data = DF)
 
+# quadratic model
 m.q <-
   lm(speed.per ~ authors.n + 
          I(authors.n ^ 2),
        weight = w,
        data = DF)
 
+# quadratic modellogarithmic model
 m.log <-
   lm(speed.per ~ log(authors.n),
        weight = w,
        data = DF)
 
+# Compare the Bayesian Information Criteria scores
 BIC(m.l)
 BIC(m.q)
 BIC(m.log)
 
-# vertex
+# calculate the vertex of the parabola
 -coef(m.q)["authors.n"] / 
   (2 * coef(m.q)["I(authors.n^2)"])
 
+# Plot the response speed curves for the three models
 ggplot(data = DF,
        aes(x = authors.n,
            y = speed.per)) +
@@ -99,22 +105,27 @@ log for COVID-19
 log for AI
 log for terrorism
 ```{r}
+# Test different model fits for the scholarly citation data
+# linear model
 m.l <-
   lm(citation.per ~ authors.n,
        weight = w,
        data = DF)
 
+# quadratic model
 m.q <-
   lm(citation.per ~ authors.n + 
          I(authors.n ^ 2),
        weight = w,
        data = DF)
 
+# logarithmic model
 m.log <-
   lm(citation.per ~ log(authors.n),
        weight = w,
        data = DF)
 
+# Compares the Bayesian Information Criteria scores
 BIC(m.l)
 BIC(m.q)
 BIC(m.log)
@@ -122,10 +133,11 @@ BIC(m.log)
 BIC(m.l) - BIC(m.q)
 BIC(m.log) - BIC(m.q)
 
-# vertex
+# calculate the vertex of the parabola
 -coef(m.q)["authors.n"] / 
   (2 * coef(m.q)["I(authors.n^2)"])
 
+# Plot the scholarly citations curves for the three models
 ggplot(data = DF,
        aes(x = authors.n,
            y = citation.per)) +
@@ -150,30 +162,36 @@ COVID: quadratid (peak 75)
 AI: quadratic (peak 67)
 terrorism: quadratic (peak 23)
 ```{r}
+# Test different model fits for the news mentions data
+# linear model
 m.l <-
   lm(news.per ~ authors.n,
        weight = w,
        data = DF)
 
+# quadratic model
 m.q <-
   lm(news.per ~ authors.n + 
          I(authors.n ^ 2),
        weight = w,
        data = DF)
 
+# logarithmic model
 m.log <-
   lm(news.per ~ log(authors.n),
        weight = w,
        data = DF)
 
+# Compare the Bayesian Information Criteria scores
 BIC(m.l)
 BIC(m.q)
 BIC(m.log)
 
-# vertex
+# calculate the vertex of the parabola
 -coef(m.q)["authors.n"] / 
   (2 * coef(m.q)["I(authors.n^2)"])
 
+# Plot the news mentions curves for the three models
 ggplot(data = DF,
        aes(x = authors.n,
            y = news.per)) +
@@ -198,30 +216,36 @@ COVID: quadratic (85)
 AI. linear
 terrorism: quadratic (25 vertex)
 ```{r}
+# Test different model fits for the policy mentions data
+# linear model
 m.l <-
   lm(policy.per ~ authors.n,
        weight = w,
        data = DF)
 
+# quadratic model
 m.q <-
   lm(policy.per ~ authors.n + 
          I(authors.n ^ 2),
        weight = w,
        data = DF)
 
+# logarithmic model
 m.log <-
   lm(policy.per ~ log(authors.n),
        weight = w,
        data = DF)
 
+# compare Bayesin Information Criteria scores
 BIC(m.l)
 BIC(m.q)
 BIC(m.log)
 
-# vertex
+# calculate the vertex of the parabola
 -coef(m.q)["authors.n"] / 
   (2 * coef(m.q)["I(authors.n^2)"])
 
+# Plot the news mentions curves for the three models
 ggplot(data = DF,
        aes(x = authors.n,
            y = policy.per)) +

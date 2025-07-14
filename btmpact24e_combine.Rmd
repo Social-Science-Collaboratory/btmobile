@@ -176,6 +176,14 @@ DF.alt <- read.csv(here("data",
   distinct(DOI,
            .keep_all = T) 
 
+# Run the following code if using the Altmetric data set with noise
+# DF.alt <- read.csv(here("data", 
+#                        "cgpt",
+#                        "btmpact24e_altmetric_cgpt_noise.csv")) %>% 
+#  # select distinct records
+#  distinct(DOI,
+#           .keep_all = T) 
+
 # connect the Altmetric dataset and identifiers
 DF.alt.ai <- 
   left_join(x = DF.alt,
@@ -209,10 +217,19 @@ DF.alt <- read.csv(here("data",
                         "covid",
                         "btmpact24e_altmetric_covid.csv")) %>% 
   
-    
   # select distinct records
   distinct(DOI,
            .keep_all = T)
+
+# Run the following code if using the Altmetric data set with noise
+# DF.alt <- read.csv(here("data", 
+#                         "covid",
+#                         "btmpact24e_altmetric_covid_noise.csv")) %>% 
+  
+#  # select distinct records
+#  distinct(DOI,
+#           .keep_all = T)
+
 
 # connect the Altmetric dataset and identifiers
 DF.alt.covid <- 
@@ -241,7 +258,12 @@ DF.ident <- read.csv(here("data",
 # open Altmetric raw data
 DF.alt <- read.csv(here("data", 
                         "terrorism",
-                        "btmpact24e _altmetric_data_terrorism.csv"))
+                        "btmpact24e_altmetric_data_terrorism.csv"))
+
+# Run the following code if using the Altmetric data set with noise
+# DF.alt <- read.csv(here("data", 
+#                        "terrorism",
+#                        "btmpact24e_altmetric_data_terrorism_noise.csv"))
 
 # connect the Altmetric dataset and identifiers
 DF.alt.terror <- 
