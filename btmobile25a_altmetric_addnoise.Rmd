@@ -1,0 +1,62 @@
+---
+title: "btmobile25a add noise to proprietary altmetric data"
+author: "Anonymized for peer review (NC)"
+reviewer: "Anonymized for peer review (JT)"
+output: word_document
+editor_options: 
+  chunk_output_type: console
+---
+
+This code adds noise to the proprietary altmetric data (so that we can share)
+
+```{r libraries}
+# load libraries
+library('tidyverse')
+library('here')
+
+# specify directory
+i_am('btmobile25a_altmetric_addnoise.Rmd')
+
+# turn off scientific notation
+options(scipen = 999)
+```
+
+# Open processed data
+```{r}
+DF <- 
+  readRDS('data/DF.full.combined.processed.Rds')
+```
+
+# Add noise
+```{r}
+DF <- DF %>% 
+  select(id, authors.n, dataset,
+         cited_by_count, news, policy, speed,
+         citation.per, news.per, policy.per, speed.per) %>% 
+  
+  # add random noise to raw values
+  mutate(
+    across(c(cited_by_count, news, policy, speed), 
+           ~ . + rnorm(n(), 
+                       mean = 0, 
+                       sd = 10)
+           )
+         ) %>% 
+  
+  # add random noise to percentile variables
+  mutate(
+    across(c(citation.per, news.per, policy.per, speed.per), 
+           ~ . + rnorm(n(), 
+                       mean = 0, 
+                       sd = 1)
+           )
+         )
+```
+
+# Export
+```{r}
+saveRDS(DF,
+        here('data',
+             'DF.full.combined.processed.noise.Rds'))
+```
+
