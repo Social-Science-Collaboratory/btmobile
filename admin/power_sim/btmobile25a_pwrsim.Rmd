@@ -1,0 +1,483 @@
+---
+title: "btmobile25a power simulation"
+author: "Anonymized for peer review (JT)"
+reviewer: "Anonymized for peer review (nc)"
+output: word_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r libraries}
+# load libraries
+library('tidyverse')
+library('here')
+library('lmerTest')
+library('ggplot2')
+library('cowplot')
+library('parallel')
+
+# specify directory
+i_am('admin/power_sim/btmobile25a_pwrsim.Rmd')
+
+# set plotting theme
+theme_set(theme_classic()) 
+
+# turn off scientific notation
+options(scipen = 999)
+
+# set seed for reproducibility
+set.seed(1967)
+```
+
+# Open combined data
+```{r}
+DF <- 
+  readRDS(here('data',
+               'DF.full.combined.processed.Rds')
+          ) %>% 
+  
+  # focus on first three years
+  filter(response_time < (365*3)) %>% 
+  
+  # input 0 into the entries that are missing Altmetric data
+  mutate(across(c(policy.per, 
+                  news.per), 
+                ~ replace(., 
+                          is.na(.), 
+                          0)
+                )
+         )
+```
+
+# Simulation function
+Using pilot data, randomly samples N papers and test which model (quadratic or logarithmic) best fits the data.
+
+Returns best fitting model, value, and difference for weighted RMSE and BIC. 
+```{r}
+# Create simulation function that:
+# A: randomly samples the number of authors from the original dataframe 
+# B: generates speed, citation, policy and news values based on model parameters
+
+sim <- function(n = 100000, 
+                DF = DF){
+  
+  #######################
+  # Step 1: Sample data
+  #######################
+  sampled_data <- DF %>%
+    select(dataset, authors.n, citation.per, news.per, policy.per, speed.per) %>%
+    
+    # collect sample
+    slice_sample(n = n) %>%
+    
+    # assign weights for later regression
+    group_by(authors.n) %>%
+    mutate(weight = 1/n()) %>%
+    ungroup() 
+  
+    # Create dataframe that will be populated with best fitting model info
+    outcome_df <- data.frame(
+      sample_size = numeric(),  # number of sampled papers
+      
+      speed.quad = numeric(),  # speed quadratic model's p-value
+      citation.log = numeric(),  # citation log model's p-value
+      policy.quad = numeric(),  # policy quadratic model's p-value
+      news.quad = numeric(),  # news quadratic model's p-value
+      
+      speed.quad.BIC = numeric(),  # speed quadratic model's BIC difference
+      citation.log.BIC = numeric(),  # citation log model's BIC difference
+      policy.quad.BIC = numeric(),  # policy quadratic model's BIC difference
+      news.quad.BIC = numeric())  # news quadratic model's BIC difference
+
+    #######################
+    # Step 2: Populate sample size
+    #######################
+    outcome_df[1,] <- c(n, rep(NA, times = 8))
+    
+    #######################
+    # Step 3: Fit and evaluate speed models
+    #######################
+    ## linear modeling
+    m.s.lin <- lmer(speed.per ~ authors.n + (1|dataset),
+                    data = sampled_data,
+                    weights = weight)
+    
+    ### extract weighted residuals
+    m.s.lin.res <- 
+      #### extract residuals and weights
+      data.frame(res = residuals(m.s.lin),
+                 weight = m.s.lin@frame$`(weights)`) %>%
+      
+      #### calculate weighted residuals
+      mutate(w.res = sqrt(weight*res^2))
+    
+    
+    ## quadratic modeling
+    m.s.quad <- lmer(speed.per ~ authors.n + I(authors.n ^ 2) + (1|dataset), 
+                   data = sampled_data,
+                   weights = weight)
+    
+    ### extract weighted residuals
+    m.s.quad.res <- 
+      data.frame(res = residuals(m.s.quad),
+                 weight = m.s.quad@frame$`(weights)`) %>%
+      mutate(w.res = sqrt(weight*res^2))
+  
+    ## wilcox test: compare weighted residuals
+    speed.quad <- 
+      wilcox.test(m.s.lin.res$w.res, 
+                  m.s.quad.res$w.res,
+                  paired = TRUE)
+  
+    outcome_df$speed.quad <- speed.quad$p.value # record p-value
+   
+    ## BIC comparison
+    outcome_df$speed.quad.BIC <- 
+      BIC(m.s.lin) - BIC(m.s.quad)
+    
+    #######################
+    # Step 4: Fit and evaluate citation models
+    #######################
+    ## linear modeling
+    m.c.lin <- lmer(citation.per ~ authors.n + (1|dataset),
+                    data = sampled_data,
+                    weights = weight)
+    
+    ### extract weighted residuals
+    m.c.lin.res <- data.frame(res = residuals(m.c.lin),
+                              weight = m.c.lin@frame$`(weights)`) %>%
+    mutate(w.res = sqrt(weight*res^2))
+    
+    ## log modeling
+    m.c.log <- lmer(citation.per ~ log(authors.n) + (1|dataset), 
+                    data = sampled_data,
+                    weights = weight)
+    
+    ## extract weighted residuals
+    m.c.log.res <- data.frame(res = residuals(m.c.log),
+                              weight = m.c.log@frame$`(weights)`) %>%
+      mutate(w.res = sqrt(weight*res^2))
+    
+    ## wilcox test: compare weighted residuals
+    citation.log <- wilcox.test(m.c.lin.res$w.res, 
+                                m.c.log.res$w.res,
+                                paired = TRUE)
+    
+    outcome_df$citation.log <- citation.log$p.value # record p-value
+    
+    ## BIC comparison
+    outcome_df$citation.log.BIC <- 
+      BIC(m.c.lin) - BIC(m.c.log)
+  
+    #######################
+    # Step 4: Fit and evaluate policy models
+    #######################
+    ## linear modeling
+    m.p.lin <- lmer(policy.per ~ authors.n + (1|dataset),
+                    data = sampled_data,
+                    weights = weight)
+  
+    ## extract weighted residuals
+    m.p.lin.res <- data.frame(res = residuals(m.p.lin),
+                              weight = m.p.lin@frame$`(weights)`) %>%
+      mutate(w.res = sqrt(weight*res^2))
+    
+    ## quadratic modeling
+    m.p.quad <- lmer(policy.per ~ authors.n + I(authors.n ^ 2) + (1|dataset), 
+                     data = sampled_data,
+                     weights = weight)
+    
+    ## extract weighted residuals
+    m.p.quad.res <- data.frame(res = residuals(m.p.quad),
+                               weight = m.p.quad@frame$`(weights)`) %>%
+      mutate(w.res = sqrt(weight*res^2))
+  
+    ## wilcox test: compare weighted residuals
+    policy.quad <- wilcox.test(m.p.lin.res$w.res, 
+                               m.p.quad.res$w.res,
+                               paired = TRUE)
+    
+    outcome_df$policy.quad <- policy.quad$p.value # record p-value
+  
+    ## BIC comparison
+    outcome_df$policy.quad.BIC <- 
+      BIC(m.p.lin) - BIC(m.p.quad)
+  
+    #######################
+    # Step 5: Fit and evaluate news models
+    #######################
+    ## linear modeling
+    m.n.lin <- lmer(news.per ~ authors.n + (1|dataset),
+                    data = sampled_data,
+                    weights = weight)
+  
+    ## extract weighted residuals
+    m.n.lin.res <- data.frame(res = residuals(m.n.lin),
+                              weight = m.n.lin@frame$`(weights)`) %>%
+      mutate(w.res = sqrt(weight*res^2))
+    
+    ## quadratic modeling
+    m.n.quad <- lmer(news.per ~ authors.n + I(authors.n ^ 2) + (1|dataset), 
+                     data = sampled_data,
+                     weights = weight)
+    
+    ## extract weighted residuals
+    m.n.quad.res <- data.frame(res = residuals(m.n.quad),
+                               weight = m.n.quad@frame$`(weights)`) %>%
+      mutate(w.res = sqrt(weight*res^2))
+    
+    ## wilcox test: compare weighted residuals
+    news.quad <- wilcox.test(m.n.lin.res$w.res, 
+                             m.n.quad.res$w.res,
+                             paired = TRUE)
+    
+    outcome_df$news.quad <- news.quad$p.value # record p-value
+  
+    ## BIC comparison
+    outcome_df$news.quad.BIC <- 
+      BIC(m.n.lin) - BIC(m.n.quad)
+  
+  return(outcome_df)
+}
+```
+
+# Power simulation
+```{r}
+# Determine the number of cores for parallelization
+numCores <- 5 # set to 50 on final simulation
+cl <- makeCluster(numCores)
+
+# Export the dataframe and the power simulation function to each core
+clusterExport(cl, varlist = c("DF", "sim"))
+
+# Load the libraries used in the simulation in all cores
+clusterEvalQ(cl, {
+  library('tidyverse')
+  library('lmerTest')
+})
+
+# choose number of iterations and sample sizes for simulation
+iterations <- 10 # set to 1000 in final simulation
+sample_sizes <- c(1000, 3300, 10000, 33000, 100000, 330000)
+
+# create sample size list for lapply
+sample_size_list = rep(sample_sizes, 
+                       each = iterations)
+
+# run  power simulation for each sample size in the list and binds all elements into a single dataframe
+sim_outcome <- 
+  bind_rows(parLapply(cl, 
+                      sample_size_list, 
+                      function(n)
+                        sim(n = n, DF = DF)
+                      )
+            )
+
+# free clusters after you are done simulating
+stopCluster(cl)
+```
+
+# Plot power curve
+Prepare dataframe
+```{r}
+# Optional: save dataframe after simulation
+# saveRDS(sim_outcome, 
+#         here("admin", 
+#              "power_sim",  
+#              "btmobile25a_pwrsim_outcome.Rds")
+#         )
+
+# Optional: load saved dataframe
+# sim_outcome <- 
+#   readRDS(here("admin", 
+#                "power_sim",  
+#                "btmobile25a_pwrsim_outcome.Rds"))
+
+# Check if the change in BIC is greater than 10
+sim_outcome <- sim_outcome %>%
+  mutate(
+    speed.quad.test = 
+      ifelse(speed.quad < 0.05, 
+             1, 0),
+    
+    citation.log.test = 
+      ifelse(citation.log < 0.05, 
+             1, 0),
+    
+    policy.quad.test = 
+      ifelse(policy.quad < 0.05, 
+             1, 0),
+    
+    news.quad.test = 
+      ifelse(news.quad < 0.05, 
+             1, 0),
+    
+    speed.quad.BIC.test = 
+      ifelse(speed.quad.BIC > 5, 
+             1, 0),
+    
+    citation.log.BIC.test = 
+      ifelse(citation.log.BIC > 5, 
+             1, 0),
+    
+    policy.quad.BIC.test = 
+      ifelse(policy.quad.BIC > 5, 
+             1, 0),
+    
+    news.quad.BIC.test = 
+      ifelse(news.quad.BIC > 5, 
+             1, 0)
+    )
+
+# calculate the percentage of instances where decision criteria was met (and prep for viz)
+power_df <- sim_outcome %>%
+  
+  # group by sample size
+  group_by(sample_size) %>%
+  
+  # calculate power for Wilcox and BIC decision rules
+  summarise(
+    speed_quad = mean(speed.quad.test),
+    citation_log = mean(citation.log.test),
+    policy_quad = mean(policy.quad.test),
+    news_quad = mean(news.quad.test),
+    
+    speed_quad_BIC = mean(speed.quad.BIC.test),
+    citation_log_BIC = mean(citation.log.BIC.test),
+    policy_quad_BIC = mean(policy.quad.BIC.test),
+    news_quad_BIC = mean(news.quad.BIC.test)
+    )  %>%
+  
+  # prepare for viz
+  pivot_longer(cols = -sample_size,
+               names_to = "model",
+               values_to = "power") %>%
+  
+  mutate(
+    outcome = case_when(
+      model %in% c("speed_quad", "speed_quad_BIC") ~ "speed",
+      model %in% c("citation_log", "citation_log_BIC") ~ "citation",
+      model %in% c("policy_quad", "policy_quad_BIC") ~ "policy",
+      model %in% c("news_quad", "news_quad_BIC") ~ "news"),
+    
+    fit = case_when(
+      model %in% c("speed_quad", "speed_quad_BIC",
+                   "policy_quad", "policy_quad_BIC", 
+                   "news_quad", "news_quad_BIC") ~ "quad",
+      model %in% c("citation_log", "citation_log_BIC") ~ "log"),
+    
+    comparison = case_when(
+      model %in% c("speed_quad", "citation_log",
+                   "policy_quad", "news_quad") ~ "wilcoxon",
+      model %in% c("speed_quad_BIC", "citation_log_BIC",
+                   "policy_quad_BIC", "news_quad_BIC") ~ "BIC")
+    )
+```
+
+Plot power curve for Wilcoxon signed-rank test comparisons
+```{r}
+plot_w <- 
+  
+  # filter necessary outcomes
+  power_df %>%
+  filter(model %in% c("speed_quad", "citation_log", 
+                      "policy_quad", "news_quad")) %>%
+  
+  # set aes
+  ggplot(data = ., 
+         aes(x = sample_size, 
+             y = power, 
+             color = model)) +
+  
+  # plot objects
+  geom_line(size = 1, alpha = 0.7) +
+  geom_point(size = 2, alpha = 0.7) +
+  geom_hline(yintercept = 0.95, 
+             linetype = "dotted", 
+             color = "black") +
+  
+  # clean aes
+  coord_cartesian(ylim = c(0, 330000)) +
+  coord_cartesian(ylim = c(0, 1.04)) +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.title.x = element_blank()) +
+  labs(title = "Power Curve for Wilcoxon Test < 0.05", 
+       color = "Model", 
+       y = "Power") +
+  scale_x_continuous(trans = "log10", labels = scales::label_number())
+```
+
+Plot power curve for BIC comparisons
+```{r}
+plot_b <- 
+  
+  # filter necessary outcomes
+  power_df %>%
+  filter(model %in% c("speed_quad_BIC", 
+                      "citation_log_BIC", 
+                      "policy_quad_BIC", 
+                      "news_quad_BIC")) %>%
+  
+  # set aes
+  ggplot(data = ., 
+         aes(x = sample_size, 
+             y = power, 
+             color = model)) +
+  
+  # plot objects
+  geom_line(size = 1, alpha = 0.7) +
+  geom_point(size = 2, alpha = 0.7) +
+  geom_hline(yintercept = 0.95, 
+             linetype = "dotted", 
+             color = "black") +
+  
+  # fix aes
+  coord_cartesian(ylim = c(0, 330000)) +
+  coord_cartesian(ylim = c(0, 1.04)) +
+  theme_classic() +
+  theme(
+    axis.title.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.text.y = element_blank(),
+    axis.title.x = element_blank()
+  ) +
+  labs(title = "Power Curve for \u0394 BIC < -5", y = "Power") +
+  scale_x_continuous(trans = "log10", labels = scales::label_number()) +
+  scale_color_manual(
+    values = c("citation_log_BIC" = "#F8766D", 
+               "news_quad_BIC" = "#7CAE00", 
+               "policy_quad_BIC" = "#00BFC4", 
+               "speed_quad_BIC" = "#C77CFF"),
+    labels = c("citation_log_BIC" = "DV = Scholarly article citations;
+Model = Logarithmic", 
+               "news_quad_BIC" = "DV = News citations;
+Model = Quadratic", 
+               "policy_quad_BIC" = "DV = Policy citations;
+Model = Quadratic", 
+               "speed_quad_BIC" = "DV = Response speed;
+Model = Quadratic"),
+    name = "Dependent Variable 
+and Model Fit"
+  )
+```
+
+Combine plots
+```{r}
+legend <- 
+  get_legend(plot_b + theme(legend.position = "right"))
+
+plot_b <- plot_b + theme(legend.position = "none")
+
+plot_wb <- plot_grid(plot_w, plot_b, 
+                     rel_widths = c(1, 1), ncol = 2)
+
+plot_wb_label <- ggdraw() +
+  draw_plot(plot_wb, 0, 0.05, 1, 0.95) +  # position and size of plot
+  draw_text("Sample size (log scale)", x = 0.5, y = 0.02, fontface = "bold", size = 12)
+
+plot_final <- plot_grid(plot_wb_label, legend, 
+                        ncol = 2, rel_widths = c(2, 0.4))
+
+print(plot_final)
+```
