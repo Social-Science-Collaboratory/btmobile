@@ -1,7 +1,7 @@
 ---
 title: "btmobile25a power simulation"
 author: "Anonymized for peer review (JT)"
-reviewer: "Anonymized for peer review (nc)"
+reviewer: "Anonymized for peer review (NC)"
 output: word_document
 editor_options: 
   chunk_output_type: console
@@ -170,7 +170,7 @@ sim <- function(n = 100000,
       BIC(m.c.lin) - BIC(m.c.log)
   
     #######################
-    # Step 4: Fit and evaluate policy models
+    # Step 5: Fit and evaluate policy models
     #######################
     ## linear modeling
     m.p.lin <- lmer(policy.per ~ authors.n + (1|dataset),
@@ -204,7 +204,7 @@ sim <- function(n = 100000,
       BIC(m.p.lin) - BIC(m.p.quad)
   
     #######################
-    # Step 5: Fit and evaluate news models
+    # Step 6: Fit and evaluate news models
     #######################
     ## linear modeling
     m.n.lin <- lmer(news.per ~ authors.n + (1|dataset),
@@ -277,23 +277,26 @@ sim_outcome <-
 stopCluster(cl)
 ```
 
+# Optional: back up (or load) dataframe
+```{r eval = FALSE}
+# Optional: save dataframe after simulation
+saveRDS(sim_outcome, 
+        here("admin", 
+             "power_sim",  
+             "btmobile25a_pwrsim_outcome.Rds")
+        )
+
+# Optional: load saved dataframe
+sim_outcome <- 
+  readRDS(here("admin", 
+               "power_sim",  
+               "btmobile25a_pwrsim_outcome.Rds"))
+```
+
 # Plot power curve
 Prepare dataframe
 ```{r}
-# Optional: save dataframe after simulation
-# saveRDS(sim_outcome, 
-#         here("admin", 
-#              "power_sim",  
-#              "btmobile25a_pwrsim_outcome.Rds")
-#         )
-
-# Optional: load saved dataframe
-# sim_outcome <- 
-#   readRDS(here("admin", 
-#                "power_sim",  
-#                "btmobile25a_pwrsim_outcome.Rds"))
-
-# Check if the change in BIC is greater than 10
+# Check if the change in BIC is greater than 5
 sim_outcome <- sim_outcome %>%
   mutate(
     speed.quad.test = 
