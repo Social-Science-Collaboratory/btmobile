@@ -1,0 +1,337 @@
+---
+title: "btmobile25a main analyses"
+author: "Anonymized for peer review (NC)"
+reviewer: "Anonymized for peer review (JT)"
+output: word_document
+editor_options: 
+  chunk_output_type: console
+---
+
+This code conducts the main analyses and produces the main figure for the Stage 1 Registered Report
+
+```{r libraries}
+# load libraries
+library('tidyverse')
+library('lme4')
+library('lmerTest')
+library('here')
+library('geomtextpath')
+library('grid')
+library('gridExtra')
+library('ggeffects')
+
+# specify directory
+i_am('btmobile25a_main.Rmd')
+
+# set plotting theme
+theme_set(theme_classic()) 
+
+# turn off scientific notation
+options(scipen = 999)
+```
+
+# Open processed data
+```{r}
+DF <- 
+  readRDS('data/DF.full.combined.processed.Rds')
+
+# compute inverse frequency weights
+DF <- DF %>%
+  count(authors.n, name = "n_authors") %>%
+  mutate(inv_freq_weight = 1 / n_authors) %>%
+  right_join(DF, by = "authors.n") %>%
+  mutate(w = inv_freq_weight / mean(inv_freq_weight, na.rm = TRUE))
+```
+
+# Analyses
+## Speed
+```{r}
+# linear
+m.l <-
+  lmer(speed.per ~ authors.n +
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+## summarise in raw units
+lmer(speed. ~ authors.n +
+       (1 | dataset),
+     weight = w,
+     data = DF) %>% 
+  summary()
+
+# quadratic
+m.q <-
+  lmer(speed.per ~ authors.n + 
+         I(authors.n ^ 2) + 
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+# log
+m.log <-
+  lmer(speed.per ~ log(authors.n) +
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+# BIC
+BIC(m.l) - BIC(m.q)
+BIC(m.l) - BIC(m.log)
+
+# vertex (49 researchers)
+coef <- fixef(m.q)
+-coef["authors.n"] / 
+  (2 * coef["I(authors.n^2)"])
+
+# z-score
+(48.92769 - mean(DF$authors.n)) / sd(DF$authors.n)
+
+rm(m.l, m.q, m.log)
+```
+
+## Scholarly citations
+```{r}
+# linear
+m.l <-
+  lmer(citation.per ~ authors.n +
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+## for summarizing (B1 = 1.08)
+lmer(cited_by_count ~ authors.n +
+       (1 | dataset),
+     weight = w,
+     data = DF) %>% 
+  summary()
+
+# quadratic
+m.q <-
+  lmer(citation.per ~ authors.n + 
+         I(authors.n ^ 2) +
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+# log
+m.log <-
+  lmer(citation.per ~ log(authors.n) + 
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+# BIC
+BIC(m.l) - BIC(m.log)
+BIC(m.q)- BIC(m.log)
+
+rm(m.l, m.q, m.log)
+```
+
+## News
+```{r}
+# linear
+m.l <-
+  lmer(news.per ~ authors.n +
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+## for summary
+lmer(news ~ authors.n +
+         (1 | dataset),
+       weight = w,
+       data = DF) %>% 
+  summary()
+
+# quadratic
+m.q <-
+  lmer(news.per ~ authors.n +
+         I(authors.n ^ 2) +
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+# log
+m.log <-
+  lmer(news.per ~ log(authors.n) +
+         I(authors.n ^ 2) +
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+# BIC
+BIC(m.l) - BIC(m.q)
+BIC(m.log) - BIC(m.q)
+
+# vertex (75 researchers)
+coef <- fixef(m.q)
+-coef["authors.n"] / 
+  (2 * coef["I(authors.n^2)"])
+
+(74.84168 - mean(DF$authors.n)) / sd(DF$authors.n)
+
+rm(m.l, m.q, m.log)
+```
+
+## Policy
+```{r}
+# linear
+m.l <-
+  lmer(policy.per ~ authors.n +
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+## summarize in raw units
+lmer(policy ~ authors.n +
+       (1 | dataset),
+     weight = w,
+     data = DF) %>% 
+  summary()
+
+# quadratic
+m.q <-
+  lmer(policy.per ~ authors.n + I(authors.n ^ 2) +
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+# log
+m.log <-
+  lmer(policy.per ~ log(authors.n) + 
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+# BIC
+BIC(m.l) - BIC(m.q)
+BIC(m.log) - BIC(m.q)
+
+# vertex (85.21 researchers)
+coef <- fixef(m.q)
+-coef["authors.n"] / 
+  (2 * coef["I(authors.n^2)"])
+
+(85.0857 - mean(DF$authors.n)) / sd(DF$authors.n)
+
+rm(m.l, m.q, m.log)
+```
+
+# Create Supplementary Figure 1
+Specify final models
+```{r}
+# speed
+speed.m <-
+  lmer(speed.per ~ authors.n + 
+         I(authors.n ^ 2) + 
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+# scholarly citations
+schol.m <-
+  lmer(citation.per ~ authors.n +
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+# news citations
+news.m <-
+  lmer(news.per ~ authors.n +
+         I(authors.n ^ 2) +
+         (1 | dataset),
+       weight = w,
+       data = DF)
+
+# policy citations
+policy.m <-
+  lmer(policy.per ~ authors.n + I(authors.n ^ 2) +
+         (1 | dataset),
+       weight = w,
+       data = DF)
+```
+
+Extract predicted values
+```{r}
+speed <- 
+  predict_response(speed.m,
+                   terms="authors.n [all]") %>% 
+  as.data.frame() %>% 
+  mutate(outcome = 'response speed') %>% 
+  select(x, predicted, outcome)
+
+schol <- 
+  predict_response(schol.m,
+                   terms="authors.n [all]") %>% 
+  as.data.frame() %>% 
+  mutate(outcome = 'scholarly article citations') %>% 
+  select(x, predicted, outcome)
+
+news <- 
+  predict_response(news.m,
+                   terms="authors.n [all]") %>% 
+  as.data.frame() %>% 
+  mutate(outcome = 'news citations') %>% 
+  select(x, predicted, outcome)
+
+poli <-
+  predict_response(policy.m,
+                   terms="authors.n [all]") %>% 
+  as.data.frame() %>% 
+  mutate(outcome = 'policy document citations') %>% 
+  select(x, predicted, outcome)
+
+DF.fig <- rbind(speed, schol, news, poli)
+
+rm(speed, schol, news, poli,
+   speed.m, schol.m, policy.m, news.m)
+```
+
+Plot
+```{r}
+ggplot(data = DF.fig,
+       aes(x = x,
+           y = predicted,
+           label = outcome)) +
+  
+  # citation
+  geom_textsmooth(
+    data = DF.fig %>% 
+      filter(outcome == 'scholarly article citations'),
+    method = 'lm',
+    formula = y ~ log(x),
+    alpha = .7,
+    color = '#CC79A7')+
+  
+  # news
+  geom_textsmooth(
+    data = DF.fig %>% 
+      filter(outcome == 'news citations'),
+    method = 'lm',
+    formula = y ~ x + I(x^2),
+    alpha = .7,
+    color = '#0072B2') +
+
+  
+  # policy
+  geom_textsmooth(
+    data = DF.fig %>% 
+      filter(outcome == 'policy document citations'),
+    method = 'lm',
+    formula = y ~ x + I(x^2),
+    alpha = .7,
+    color = '#D55E00') +
+  
+  # speed
+  geom_textsmooth(
+    data = DF.fig %>% 
+      filter(outcome == 'response speed'),
+    method = 'lm',
+    formula = y ~ x + I(x^2),
+    alpha = .7,
+    color = '#009E73') +
+  
+  labs(x = '# of co-authors',
+       y = "average percentile")
+```
