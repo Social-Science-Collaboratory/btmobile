@@ -6,35 +6,23 @@ output: word_document
 editor_options: 
   chunk_output_type: console
 ---
+# Setup
+```{r }
+# specify data directory
+data_dir <- Sys.getenv("data_dir")
 
-```{r libraries}
-# load libraries
-library('tidyverse')
-library('here')
-library('lmerTest')
-library('ggplot2')
-library('cowplot')
-library('parallel')
-
-# specify directory
-i_am('admin/power_sim/btmobile25a_pwrsim.Rmd')
-
-# set plotting theme
-theme_set(theme_classic()) 
-
-# turn off scientific notation
-options(scipen = 999)
-
-# set seed for reproducibility
-set.seed(1967)
+# source setup file
+source('setup.R')
 ```
 
 # Open combined data
 ```{r}
 DF <- 
-  readRDS(here('data',
-               'DF.full.combined.processed.Rds')
-          ) %>% 
+  readRDS(
+    file.path(data_dir,
+              'combined',
+              'DF.full.combined.processed.Rds')
+    ) %>% 
   
   # focus on first three years
   filter(response_time < (365*3)) %>% 
@@ -65,7 +53,8 @@ sim <- function(n = 100000,
   # Step 1: Sample data
   #######################
   sampled_data <- DF %>%
-    select(dataset, authors.n, citation.per, news.per, policy.per, speed.per) %>%
+    select(dataset, authors.n, citation.per, 
+           news.per, policy.per, speed.per) %>%
     
     # collect sample
     slice_sample(n = n) %>%
@@ -280,17 +269,16 @@ stopCluster(cl)
 # Optional: back up (or load) dataframe
 ```{r eval = FALSE}
 # Optional: save dataframe after simulation
-saveRDS(sim_outcome, 
-        here("admin", 
-             "power_sim",  
-             "btmobile25a_pwrsim_outcome.Rds")
-        )
+sim_outcome %>% 
+  saveRDS(file.path('power_sim',
+                    'btmobile25a_pwrsim_outcome.Rds')
+          )
 
 # Optional: load saved dataframe
 sim_outcome <- 
-  readRDS(here("admin", 
-               "power_sim",  
-               "btmobile25a_pwrsim_outcome.Rds"))
+  readRDS(file.path('power_sim',
+                    'btmobile25a_pwrsim_outcome.Rds')
+          )
 ```
 
 # Plot power curve
@@ -408,7 +396,14 @@ plot_w <-
   labs(title = "Power Curve for Wilcoxon Test < 0.05", 
        color = "Model", 
        y = "Power") +
-  scale_x_continuous(trans = "log10", labels = scales::label_number())
+  scale_x_continuous(trans = "log10", 
+                     labels = scales::label_number()) +
+  scale_color_manual(
+    values = c("speed_quad" = "#009E73", 
+               "citation_log" = "#CC79A7",
+               "policy_quad" = "#D55E00",
+               "news_quad" = "#0072B2"))
+
 ```
 
 Plot power curve for BIC comparisons
@@ -448,10 +443,10 @@ plot_b <-
   labs(title = "Power Curve for \u0394 BIC < -5", y = "Power") +
   scale_x_continuous(trans = "log10", labels = scales::label_number()) +
   scale_color_manual(
-    values = c("citation_log_BIC" = "#F8766D", 
-               "news_quad_BIC" = "#7CAE00", 
-               "policy_quad_BIC" = "#00BFC4", 
-               "speed_quad_BIC" = "#C77CFF"),
+    values = c("citation_log_BIC" = "#CC79A7", 
+               "news_quad_BIC" = "#0072B2", 
+               "policy_quad_BIC" = "#D55E00", 
+               "speed_quad_BIC" = "#009E73"),
     labels = c("citation_log_BIC" = "DV = Scholarly article citations;
 Model = Logarithmic", 
                "news_quad_BIC" = "DV = News citations;

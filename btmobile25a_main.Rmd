@@ -9,25 +9,13 @@ editor_options:
 
 This code conducts the main analyses and produces the main figure for the Stage 1 Registered Report
 
-```{r libraries}
-# load libraries
-library('tidyverse')
-library('lme4')
-library('lmerTest')
-library('geomtextpath')
-library('grid')
-library('gridExtra')
-library('ggeffects')
-
+# Setup
+```{r}
 # specify data directory
-## Note: user must provide .Renviron specifying location of data
 data_dir <- Sys.getenv("data_dir")
 
-# set plotting theme
-theme_set(theme_classic())
-
-# turn off scientific notation
-options(scipen = 999)
+# source setup file
+source('setup.R')
 ```
 
 # Open processed data
@@ -85,6 +73,7 @@ BIC(m.l) - BIC(m.log)
 
 # vertex (49 researchers)
 coef <- fixef(m.q)
+
 -coef["authors.n"] / 
   (2 * coef["I(authors.n^2)"])
 
@@ -170,6 +159,7 @@ BIC(m.log) - BIC(m.q)
 
 # vertex (75 researchers)
 coef <- fixef(m.q)
+
 -coef["authors.n"] / 
   (2 * coef["I(authors.n^2)"])
 
@@ -214,6 +204,7 @@ BIC(m.log) - BIC(m.q)
 
 # vertex (85.21 researchers)
 coef <- fixef(m.q)
+
 -coef["authors.n"] / 
   (2 * coef["I(authors.n^2)"])
 
@@ -260,33 +251,34 @@ Extract predicted values
 ```{r}
 speed <- 
   predict_response(speed.m,
-                   terms="authors.n [all]") %>% 
+                   terms= "authors.n [all]") %>% 
   as.data.frame() %>% 
   mutate(outcome = 'response speed') %>% 
   select(x, predicted, outcome)
 
 schol <- 
   predict_response(schol.m,
-                   terms="authors.n [all]") %>% 
+                   terms= "authors.n [all]") %>% 
   as.data.frame() %>% 
   mutate(outcome = 'scholarly article citations') %>% 
   select(x, predicted, outcome)
 
 news <- 
   predict_response(news.m,
-                   terms="authors.n [all]") %>% 
+                   terms= "authors.n [all]") %>% 
   as.data.frame() %>% 
   mutate(outcome = 'news citations') %>% 
   select(x, predicted, outcome)
 
 poli <-
   predict_response(policy.m,
-                   terms="authors.n [all]") %>% 
+                   terms= "authors.n [all]") %>% 
   as.data.frame() %>% 
   mutate(outcome = 'policy document citations') %>% 
   select(x, predicted, outcome)
 
-DF.fig <- rbind(speed, schol, news, poli)
+DF.fig <- rbind(speed, schol, 
+                news, poli)
 
 rm(speed, schol, news, poli,
    speed.m, schol.m, policy.m, news.m)

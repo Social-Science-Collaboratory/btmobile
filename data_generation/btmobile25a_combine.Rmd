@@ -8,14 +8,13 @@ editor_options:
 ---
 This code combines OpenAlex and Altmetric data.
 
-# Configure environment
-```{r libraries}
-# load libraries
-library('tidyverse')
-library('here')
+# Setup
+```{r set.env}
+# specify data directory
+data_dir <- Sys.getenv("data_dir")
 
-# specify directory
-i_am('btmpact24e_combine.Rmd')
+# source setup file
+source('setup.R')
 ```
 
 # Open and merge OpenAlex datasets
@@ -23,15 +22,24 @@ i_am('btmpact24e_combine.Rmd')
 ```{r}
 # AI data
 DF.ai <- 
-  readRDS(file = 'data/cgpt/btmpact24e_data_binded_cgpt.Rds')
+  readRDS(file.path(data_dir,
+                    'cgpt',
+                    'btmobile25a_data_binded_cgpt.Rds')
+          )
 
 # COVID data
 DF.covid <- 
-  readRDS(file = 'data/covid/btmpact24e_data_binded_covid.Rds')
+  readRDS(file.path(data_dir,
+                    'covid',
+                    'btmobile25a_data_binded_covid.Rds')
+          )
   
 # terrorism data
 DF.terror <- 
-  readRDS(file = 'data/terrorism/btmpact24e_data_raw_terrorism.Rds')
+  readRDS(file.path(data_dir,
+                    'covid',
+                    'btmobile25a_data_raw_terrorism.Rds')
+          )
 ```
 
 ## Prepare OpenAlex search data
@@ -39,6 +47,7 @@ DF.terror <-
 ```{r}
 DF.ai <- 
   DF.ai %>% 
+  
   # select distinct records
   distinct(id,
            .keep_all = T) %>% 
@@ -71,6 +80,7 @@ DF.ai <-
 ```{r}
 DF.covid <- 
   DF.covid %>%
+  
   # select distinct records
   distinct(id,
            .keep_all = T) %>% 
@@ -103,6 +113,7 @@ DF.covid <-
 ```{r}
 DF.terror <- 
   DF.terror %>% 
+  
   # select distinct records
   distinct(id,
            .keep_all = T) %>% 
@@ -140,8 +151,11 @@ DF.oa <-
         DF.terror)
 
 # export
-# DF.oa %>% 
-#   saveRDS('data/combined/DF.oa.combined.Rds')
+DF.oa %>% 
+  saveRDS(file.path(data_dir,
+                    'combined',
+                    'DF.oa.combined.Rds')
+          )
 
 # delete vestigial
 rm(DF.ai, DF.covid, DF.terror)
@@ -150,11 +164,12 @@ rm(DF.ai, DF.covid, DF.terror)
 ## Prepare Altmetrics datasets
 ### AI
 ```{r}
-# identifiers included in btmpact24e_data_doi_ai.csv
+# identifiers included in btmobile25a_data_doi_ai.csv
 DF.ident <- 
-  read.csv(here("data",
-                "cgpt",
-                "btmpact24e_data_doi_cgpt.csv")) %>% 
+  read.csv(
+    file.path(data_dir,
+              "cgpt",
+              "btmobile25a_data_doi_cgpt.csv")) %>% 
   rename(DOI = doi) %>% 
   mutate(DOI = str_replace(string = DOI,
                            pattern = "https://doi.org/",
@@ -168,9 +183,12 @@ DF.ident <-
   select(id, DOI)
 
 # open Altmetric raw data
-DF.alt <- read.csv(here("data", 
-                        "cgpt",
-                        "btmpact24e_altmetric_cgpt.csv")) %>% 
+DF.alt <- 
+  read.csv(
+    file.path(data_dir,
+              "cgpt",
+              "btmobile25a_altmetric_cgpt.csv")
+    ) %>% 
   
   # select distinct records
   distinct(DOI,
@@ -188,10 +206,12 @@ rm(DF.alt, DF.ident)
 
 ### COVID
 ```{r}
-# identifiers included in btmpact24e_data_doi_covid.csv
-DF.ident <- read.csv(here("data",
-                          "covid",
-                          "btmpact24e_data_doi_covid.csv")) %>% 
+# identifiers included in btmobile25a_data_doi_covid.csv
+DF.ident <- 
+  read.csv(
+    file.path(data_dir,
+              "covid",
+              "btmobile25a_data_doi_covid.csv")) %>% 
   rename(DOI = doi) %>% 
   mutate(DOI = str_replace(string = DOI,
                            pattern = "https://doi.org/",
@@ -205,10 +225,12 @@ DF.ident <- read.csv(here("data",
   select(id, DOI)
 
 # open Altmetric raw data
-DF.alt <- read.csv(here("data", 
-                        "covid",
-                        "btmpact24e_altmetric_covid.csv")) %>% 
-  
+DF.alt <- 
+  read.csv(
+    file.path(data_dir,
+              "covid",
+              "btmobile25a_altmetric_covid.csv")
+    ) %>% 
     
   # select distinct records
   distinct(DOI,
@@ -227,9 +249,12 @@ rm(DF.alt, DF.ident)
 ### terrorism
 ```{r}
 # identifiers included in btmpact24e_data.doi.csv
-DF.ident <- read.csv(here("data",
-                          "terrorism",
-                          "btmpact24e_data_doi_terrorism.csv")) %>% 
+DF.ident <- 
+  read.csv(
+    file.path(data_dir,
+              "terrorism",
+              "btmobile25a_data_doi_terrorism.csv")
+    ) %>% 
   rename(DOI = doi) %>% 
   mutate(DOI = str_replace(string = DOI,
                            pattern = "https://doi.org/",
@@ -239,9 +264,12 @@ DF.ident <- read.csv(here("data",
   select(id, DOI)
 
 # open Altmetric raw data
-DF.alt <- read.csv(here("data", 
-                        "terrorism",
-                        "btmpact24e _altmetric_data_terrorism.csv"))
+DF.alt <- 
+  read.csv(
+    file.path(data_dir,
+              "terrorism",
+              "btmobile25a_altmetric_data_terrorism.csv")
+    )
 
 # connect the Altmetric dataset and identifiers
 DF.alt.terror <- 
@@ -271,7 +299,10 @@ DF.alt <-
 
 # export
 DF.alt %>% 
-  saveRDS('data/combined/DF.alt.combined.Rds')
+  saveRDS(file.path(data_dir,
+                    'combined',
+                    'DF.alt.combined.Rds')
+          )
 
 # delete vestigial
 rm(DF.alt.ai, DF.alt.covid, DF.alt.terror)

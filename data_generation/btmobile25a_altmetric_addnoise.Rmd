@@ -8,23 +8,22 @@ editor_options:
 ---
 
 This code adds noise to the proprietary altmetric data (so that we can share)
+# Setup
+```{r set.env}
+# specify data directory
+data_dir <- Sys.getenv("data_dir")
 
-```{r libraries}
-# load libraries
-library('tidyverse')
-library('here')
-
-# specify directory
-i_am('btmobile25a_altmetric_addnoise.Rmd')
-
-# turn off scientific notation
-options(scipen = 999)
+# source setup file
+source('setup.R')
 ```
 
 # Open processed data
 ```{r}
 DF <- 
-  readRDS('data/DF.full.combined.processed.Rds')
+  readRDS(file.path(data_dir,
+                    'combined',
+                    'DF.full.combined.processed.Rds')
+          )
 ```
 
 # Add noise
@@ -56,7 +55,9 @@ DF <- DF %>%
 # Export
 ```{r}
 saveRDS(DF,
-        here('data',
-             'DF.full.combined.processed.noise.Rds'))
+        file.path(data.dir,
+                  'combined',
+                  'DF.full.combined.processed.noise.Rds')
+        )
 ```
 

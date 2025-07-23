@@ -8,12 +8,13 @@ editor_options:
 ---
 This code fetches papers from the OpenAlex API using keyword COVID-19.
 
-# Load packages and settings
-```{r set.env}
-# load packages
-library('openalexR')
-library('tidyverse')
-library("jsonlite")
+# Setup
+```{r}
+# specify data directory
+data_dir <- Sys.getenv("data_dir")
+
+# source setup file
+source('setup.R')
 
 # specify API mailing key (if applicable)
 # options(openalexR.mailto = "insert email here")
@@ -33,15 +34,21 @@ DF <-
   )
 
 # export raw data
-saveRDS(DF,
-        "/data/covid/btmpact24e_data_raw1_covid.Rds")
+DF %>% 
+  saveRDS(file.path(data_dir,
+                    'covid',
+                    'btmobile25a_data_raw1_covid.Rds')
+          )
 
 # export binded data
 DF <- DF %>% 
   works2df() 
 
 DF %>% 
-  saveRDS('data/covid/btmpact24e_data_binded1_covid.Rds')
+  saveRDS(file.path(data_dir,
+                    'covid',
+                    'btmobile25a_data_binded1_covid.Rds')
+          )
 ```
 
 # October 23 addition. Re-download records from API (because you missed the publication date)
@@ -56,25 +63,37 @@ DF2 <-
            )
 
 # export raw data
-saveRDS(DF2,
-        "/data/covid/btmpact24e_data_raw2_covid.Rds")
+DF2 %>% 
+  saveRDS(file.path(data_dir,
+                    'covid',
+                    'btmobile25a_data_raw2_covid.Rds')
+          )
 
-# bind and export
-DF2 <- DF %>% 
-  works2df()
+# export binded data
+DF2 <- DF2 %>% 
+  works2df() 
 
 DF2 %>% 
-  saveRDS('data/covid/btmpact24e_data_binded2_covid.Rds')
+  saveRDS(file.path(data_dir,
+                    'covid',
+                    'btmobile25a_data_binded2_covid.Rds')
+          )
 ```
 
 ## October 30: Connect original COVID dataset with publication date from second API pull
 Reload datasets (if necessary)
 ```{r eval = F}
 DF <- 
-  readRDS('data/covid/btmpact24e_data_binded1_covid.Rds')
+  readRDS(file.path(data_dir,
+                    'covid',
+                    'btmobile25a_data_binded1_covid.Rds')
+          )
 
 DF2 <-
-  readRDS('data/covid/btmpact24e_data_binded2_covid.Rds')
+  readRDS(file.path(data_dir,
+                    'covid',
+                    'btmobile25a_data_binded2_covid.Rds')
+          )
 
 # select relevant variables
 DF2 <- DF2 %>% 
@@ -83,27 +102,34 @@ DF2 <- DF2 %>%
 
 Merge, filter, and re-export
 ```{r}
-DF.joined <- 
-  DF %>% 
-  distinct(id, .keep_all = T) %>% 
+DF.joined <- DF %>% 
+  distinct(id, 
+           .keep_all = T) %>% 
   left_join(.,
             DF2,
             by = "id")
 
 # export
 DF.joined %>% 
-  saveRDS('data/covid/btmpact24e_data_binded_covid.Rds')
+  saveRDS(file.path(data_dir,
+                    'covid',
+                    'btmobile25a_data_binded_covid.Rds')
+          )
+
+rm(DF, DF2)
 ```
 
 # Export DOI's
 ```{r}
-DF %>%
+DF.joined %>%
   # select variables of interest
   select(doi, id) %>%   
   
   # filter complete records
   filter(doi != "")  %>% 
   
-  write.csv("/data/covid/btmpact24e_data_doi_covid.csv",
+  write.csv(file.path(data_dir,
+                      'covid',
+                      'btmobile25a_data_doi_covid.csv'),
             row.names = F)
 ```

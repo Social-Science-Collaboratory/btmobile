@@ -7,12 +7,13 @@ editor_options:
   chunk_output_type: console
 ---
 
-# Load packages and settings
+# Setup
 ```{r set.env}
-# load packages
-library('openalexR')
-library('tidyverse')
-library("jsonlite")
+# specify data directory
+data_dir <- Sys.getenv("data_dir")
+
+# source setup file
+source('setup.R')
 
 # specify API mailing key (if applicable)
 # options(openalexR.mailto = "insert email here")
@@ -32,14 +33,16 @@ DF2 <- works2df(DF)
 
 # Export
 ```{r}
-write_rds(DF2,"data/terrorism/btmpact24e_data_raw_terrorism.Rds")
-
-DF2 <- readRDS('data/terrorism/btmpact24e_data_raw_terrorism.Rds')
+DF2 %>% 
+  saveRDS(file.path(data_dir,
+                    'terrorism',
+                    'btmobile25a_data_raw_terrorism.Rds')
+          )
 ```
 
 # export DOI's for altmetric pull
 ```{r}
-tmp <-DF2 %>% 
+DF2 %>% 
   # remove instances with no authorship info
   filter(!is.na(author)) %>% 
 
@@ -60,9 +63,11 @@ tmp <-DF2 %>%
   # select variables of interest
   select(id, doi, title) %>% 
   
-  arrange(desc(doi))
-
-# export DOIs
-write.csv("data/terrorism/btmpact24e_data_doi_terrorism.csv",
-          row.names = F)
+  arrange(desc(doi)) %>% 
+  
+  # export DOIs
+  write.csv(file.path(data_dir,
+                      'terrorism',
+                      'btmobile25a_data_doi_terrorism.csv'),
+            row.names = F)
 ```

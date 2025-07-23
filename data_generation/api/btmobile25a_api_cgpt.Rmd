@@ -8,12 +8,13 @@ editor_options:
 ---
 This code fetches papers from the OpenAlex API using keyword ChatGPT.
 
-# Load packages and settings
+# Setup
 ```{r set.env}
-# load packages
-library('openalexR')
-library('tidyverse')
-library("jsonlite")
+# specify data directory
+data_dir <- Sys.getenv("data_dir")
+
+# source setup file
+source('setup.R')
 
 # specify API mailing key (if applicable)
 # options(openalexR.mailto = "insert email here")
@@ -30,7 +31,10 @@ DF <-
 
 # export raw data
 saveRDS(DF,
-        "data/cgpt/btmpact24e_data_raw_cgpt.Rds")
+        file.path(data_dir,
+                  'cgpt',
+                  'btmobile25a_data_raw_cgpt.Rds')
+        )
 
 # export binded data
 DF <- DF %>% 
@@ -53,6 +57,9 @@ DF %>%
   # filter complete records
   filter(doi != "") %>% 
   
-write.csv("data/cgpt/btmpact24e_data_doi_cgpt.csv",
-          row.names = F)
+  write.csv(
+    file.path(data_dir,
+              'cgpt',
+              'btmobile25a_data_doi_cgpt.csv'),
+    row.names = F)
 ```
