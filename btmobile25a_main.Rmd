@@ -14,14 +14,14 @@ This code conducts the main analyses and produces the main figure for the Stage 
 library('tidyverse')
 library('lme4')
 library('lmerTest')
-library('here')
 library('geomtextpath')
 library('grid')
 library('gridExtra')
 library('ggeffects')
 
-# specify directory
-i_am('btmobile25a_main.Rmd')
+# specify data directory
+## Note: user must provide .Renviron specifying location of data
+data_dir <- Sys.getenv("data_dir")
 
 # set plotting theme
 theme_set(theme_classic()) 
@@ -33,7 +33,11 @@ options(scipen = 999)
 # Open processed data
 ```{r}
 DF <- 
-  readRDS('data/DF.full.combined.processed.Rds')
+  readRDS(
+    file.path(data_dir,
+              'combined',
+              'DF.full.combined.processed.Rds')
+          )
 
 # compute inverse frequency weights
 DF <- DF %>%
