@@ -37,7 +37,11 @@ DF <- DF %>%
   works2df() 
 
 DF %>% 
-  saveRDS('data/cgpt/btmpact24e_data_binded_cgpt.Rds')
+  saveRDS(
+    file.path(data_dir,
+              'cgpt',
+              'btmobile25a_data_binded_cgpt.Rds')
+          )
 ```
 
 # Export DOI's for Altmetric pulls
