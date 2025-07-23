@@ -95,7 +95,7 @@
         <mxCell id="ZyMMh8aqc8fmREzCwDXi-14" value="&lt;u&gt;DF.full.combined.Rds&lt;/u&gt;&lt;br&gt;&lt;div&gt;All data combined&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=default;fontColor=#333333;strokeColor=#666666;fontSize=10;" parent="1" vertex="1">
           <mxGeometry x="560" y="280" width="200" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="QxKKUaJP420yn0zlgnvT-2" value="&lt;div&gt;&lt;u&gt;btmobile25a_PwrSim.Rmd&lt;/u&gt;&lt;/div&gt;&lt;div&gt;Code for conducting power simulation&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=default;fontColor=#333333;strokeColor=#666666;fontSize=10;" parent="1" vertex="1">
+        <mxCell id="QxKKUaJP420yn0zlgnvT-2" value="&lt;div&gt;&lt;u&gt;btmpact24e_paperrefs.Rmd&lt;/u&gt;&lt;/div&gt;&lt;div&gt;Code for reproducing results described in paper&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=default;fontColor=#333333;strokeColor=#666666;fontSize=10;" parent="1" vertex="1">
           <mxGeometry x="300" y="380" width="200" height="60" as="geometry" />
         </mxCell>
         <mxCell id="QxKKUaJP420yn0zlgnvT-3" value="&lt;div&gt;&lt;u&gt;btmobile25a_PilotResults.Rmd&lt;/u&gt;&lt;/div&gt;&lt;div&gt;Code for reproducing pilot results and figures&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=default;fontColor=#333333;strokeColor=#666666;fontSize=10;" parent="1" vertex="1">
@@ -104,7 +104,7 @@
         <mxCell id="-zFIzbAuybXxxrE7KLq0-3" value="&lt;font style=&quot;font-size: 10px;&quot;&gt;exports&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="-zFIzbAuybXxxrE7KLq0-1" target="-zFIzbAuybXxxrE7KLq0-2" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="-zFIzbAuybXxxrE7KLq0-1" value="&lt;div&gt;&lt;u&gt;btmpact24e_altmetric_scramble.Rmd&lt;/u&gt;&lt;/div&gt;&lt;div&gt;Scrambles Altmetric data&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=default;fontColor=#333333;strokeColor=#666666;fontSize=10;" parent="1" vertex="1">
+        <mxCell id="-zFIzbAuybXxxrE7KLq0-1" value="&lt;div&gt;&lt;u&gt;btmpact24e_altmetric_scramblescript.Rmd&lt;/u&gt;&lt;/div&gt;&lt;div&gt;Scrambles Altmetric data&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=default;fontColor=#333333;strokeColor=#666666;fontSize=10;" parent="1" vertex="1">
           <mxGeometry x="40" y="480" width="200" height="60" as="geometry" />
         </mxCell>
         <mxCell id="-zFIzbAuybXxxrE7KLq0-2" value="&lt;div&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;&lt;u&gt;btmpact24e_altmetric_cgpt_scrambled.csv&amp;nbsp;&lt;/u&gt;&lt;/span&gt;&lt;u&gt;(...covid.Rds, terrorism.Rds)&lt;/u&gt;&lt;div&gt;Scrambled Altmetric data. Original copies of data are available in an encrypted folder titled&amp;nbsp;altmetric.proprietary.encrypted.zip&lt;/div&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=default;fontColor=#333333;strokeColor=#666666;fontSize=10;" parent="1" vertex="1">
