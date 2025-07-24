@@ -1,0 +1,12 @@
+# Model
+Claude 3.7 Sonnet 
+
+# Date
+April 22nd 2025
+
+# Prompt
+I need you to identify 100 urgent societal events: historical moments in the 21st century where society had a sudden, intense, and urgent need for scientific insights. Please include events that involve social issues, technological advancements, and biological/environmental emergencies, both positive and negative, spread evenly between the beginning of the century and now. Provide a brief description of each event.
+
+I also want you to pinpoint one or more specific dates/occurrences that mark the beginning of the societal events, or that mark the moment in which the events became a global concern.
+Lastly, I want you to identify 3 keywords that uniquely identify each event so I can search every single scientific paper that refers to that topic, and only that topic. Make the keywords as precise as possible, and feel free to use the name of the event in the keyword if necessary. 
+Please convert this list of events into an excel file, with the name of the event, the description, the date of emergence, and the keywords as columns.

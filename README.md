@@ -21,13 +21,11 @@ To facilitate data sharing for private peer review cases, we have uploaded encry
 ## Main directory
 
 -   setup.R: loads libraries and preferred options
-
 -   btmobile25a_PilotResults.Rmd: Compiles pilot results and figure
 
 ### admin folder
 
 -   btmobile25a_FileOrganization.png: This figure illustrates the project’s computational workflow, highlighting the main scripts and data sets that were used in our analysis.
-
 -   DataRetentionGuidelines_012625.pdf: Copy of Data Retention Guidelines at the corresponding authors’ institution.
 
 ### data generation folder
@@ -38,9 +36,7 @@ To facilitate data sharing for private peer review cases, we have uploaded encry
 #### api subfolder
 
 -   btmobile25a_api_cgpt.Rmd: This code uses the OpenAlex API to compile papers with keyword ‘ChatGPT’
-
 -   btmobile25a_api_covid.Rmd: This code uses the OpenAlex API to compile papers with keyword ‘COVID-19’
-
 -   btmobile25a_api_terrorism.Rmd: This code fetches papers from the OpenAlex API using keyword ‘terrorism’.
 
 ### data folder
@@ -77,3 +73,12 @@ To facilitate data sharing for private peer review cases, we have uploaded encry
 -   DF.alt.combined.scrambled.Rds: Combined Altmetric data for papers linked to keyword “ChatGPT”, “COVID-19”, or “terrorism”. Data are proprietary, so the data are scrambled.
 -   DF.full.combined.scrambled.Rds: Combined OpenAlex and Altmetric data for papers papers linked to keyword “ChatGPT”, “COVID-19”, or “terrorism”. Some variables are pulled from the proprietary Altmetric dataset. Those data are scrambled.
 -   DF.full.combined.processed.scrambled.Rds: Slightly more processed version of DF.full.combined.scrambled.
+
+### event_sampling folder
+-   btmobile25a_LLMPrompt.txt: Information about prompt used to extract list of urgent societal events from a large language model.
+-   btmobile25a_LLMOutput.txt: Large language model output to a prompt request for a list of urgent societal events.
+-   btmobile25a_EventList.xlsx: Excel file where information about urgent societal event eligiblity was compiled (e.g., estimates of number of OpenAlex records)
+
+### power_sim folder
+-   btmobile25a_PwrSim.Rmd: Code for conducting, summarizing, and visualizing the results of a power simulation.
+-   btmobile25a_pwrsim_outcome.Rds: Output of power simulation.
