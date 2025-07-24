@@ -232,7 +232,7 @@ DF <- DF %>%
 saveRDS(DF,
         file.path(data.dir,
                   'combined',
-                  'DF.full.combined.processed.noise.Rds')
+                  'DF.full.combined.processed.scrambled.Rds')
         )
 ```
 
