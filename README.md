@@ -1,6 +1,6 @@
 # Repository description
 
-This repository contains data and code for the manuscript, ‘During urgent societal events, are larger research teams faster and more impactful?’.
+This repository contains data and code for the manuscript, ‘Speed and impact of team science during urgent societal events’.
 
 ## Note on computational workflow
 
