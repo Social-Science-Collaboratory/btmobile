@@ -35,6 +35,14 @@ DF <- DF %>%
   mutate(w = inv_freq_weight / mean(inv_freq_weight, na.rm = TRUE))
 ```
 
+# Number or papers from each dataset
+
+```{r}
+
+print(table(DF$dataset))
+
+```
+
 # Analyses
 ## Speed
 ```{r}
@@ -46,7 +54,7 @@ m.l <-
        data = DF)
 
 ## summarise in raw units
-lmer(speed. ~ authors.n +
+lmer(speed ~ authors.n +
        (1 | dataset),
      weight = w,
      data = DF) %>% 
