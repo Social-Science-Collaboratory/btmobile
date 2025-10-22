@@ -156,7 +156,6 @@ m.q <-
 # log
 m.log <-
   lmer(news.per ~ log(authors.n) +
-         I(authors.n ^ 2) +
          (1 | dataset),
        weight = w,
        data = DF)
@@ -234,7 +233,7 @@ speed.m <-
 
 # scholarly citations
 schol.m <-
-  lmer(citation.per ~ authors.n +
+  lmer(citation.per ~ log(authors.n) +
          (1 | dataset),
        weight = w,
        data = DF)
