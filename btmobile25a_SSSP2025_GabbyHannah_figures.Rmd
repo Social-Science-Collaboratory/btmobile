@@ -287,7 +287,10 @@ ggplot(data = DF.fig.ai,
     color = '#009E73') +
   
   labs(x = '# of co-authors',
-       y = "average percentile")
+       y = "average percentile") +
+  
+  theme(panel.background = element_rect(fill = "#F5F5F5"))
+
 ```
 
 ```{r}
@@ -335,7 +338,9 @@ ggplot(data = DF.fig.covid,
     color = '#009E73') +
   
   labs(x = '# of co-authors',
-       y = "average percentile")
+       y = "average percentile")+
+  
+  theme(panel.background = element_rect(fill = "#F5F5F5"))
 ```
 
 ```{r}
@@ -383,5 +388,7 @@ ggplot(data = DF.fig.terror,
     color = '#009E73') +
   
   labs(x = '# of co-authors',
-       y = "average percentile")
+       y = "average percentile")+
+  
+  theme(panel.background = element_rect(fill = "#F5F5F5"))
 ```
