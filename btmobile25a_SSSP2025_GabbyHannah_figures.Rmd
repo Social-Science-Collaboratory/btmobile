@@ -36,100 +36,37 @@ DF <- DF %>%
 ```
 
 # Create Figures
-## separate datasets
-```{r}
-
-DF.ai <-
-  DF %>%
-  filter(dataset == "ai")
-
-DF.covid <-
-  DF %>%
-  filter(dataset == "covid")
-
-DF.terror <-
-  DF %>%
-  filter(dataset == "terror")
-
-
-```
-
 
 
 Specify final models
 ```{r}
 # speed
-speed.m.ai <-
+speed.m <-
   lm(speed.per ~ authors.n + 
          I(authors.n ^ 2),
        weight = w,
-       data = DF.ai)
+       data = DF)
 
-speed.m.covid <-
-  lm(speed.per ~ authors.n + 
-         I(authors.n ^ 2),
-       weight = w,
-       data = DF.covid)
-
-speed.m.terror <-
-  lm(speed.per ~ authors.n + 
-         I(authors.n ^ 2),
-       weight = w,
-       data = DF.terror)
 
 # scholarly citations
-schol.m.ai <-
+schol.m <-
   lm(citation.per ~ log(authors.n),
        weight = w,
-       data = DF.ai)
-
-schol.m.covid <-
-  lm(citation.per ~ log(authors.n),
-       weight = w,
-       data = DF.covid)
-
-schol.m.terror <-
-  lm(citation.per ~ log(authors.n),
-       weight = w,
-       data = DF.terror)
-
-
+       data = DF)
 
 # news citations
-news.m.ai <-
+news.m <-
   lm(news.per ~ authors.n +
          I(authors.n ^ 2),
        weight = w,
-       data = DF.ai)
+       data = DF)
 
-news.m.covid <-
-  lm(news.per ~ authors.n +
-         I(authors.n ^ 2),
-       weight = w,
-       data = DF.covid)
-
-news.m.terror <-
-  lm(news.per ~ authors.n +
-         I(authors.n ^ 2),
-       weight = w,
-       data = DF.terror)
 
 # policy citations
-policy.m.ai <-
+policy.m <-
   lm(policy.per ~ authors.n + I(authors.n ^ 2),
        weight = w,
-       data = DF.ai)
-
-
-policy.m.covid <-
-  lm(policy.per ~ authors.n + I(authors.n ^ 2),
-       weight = w,
-       data = DF.covid)
-
-policy.m.terror <-
-  lm(policy.per ~ authors.n + I(authors.n ^ 2),
-       weight = w,
-       data = DF.terror)
+       data = DF)
 
 ```
 
@@ -137,150 +74,101 @@ Extract predicted values
 ```{r}
 
 # Predicted speed values
-speed.ai <- 
-  predict_response(speed.m.ai,
-                   terms= "authors.n [all]") %>% 
-  as.data.frame() %>% 
-  mutate(outcome = 'response speed') %>% 
-  select(x, predicted, outcome)
-
-speed.covid <- 
-  predict_response(speed.m.covid,
-                   terms= "authors.n [all]") %>% 
-  as.data.frame() %>% 
-  mutate(outcome = 'response speed') %>% 
-  select(x, predicted, outcome)
-
-speed.terror <- 
-  predict_response(speed.m.terror,
+speed <- 
+  predict_response(speed.m,
                    terms= "authors.n [all]") %>% 
   as.data.frame() %>% 
   mutate(outcome = 'response speed') %>% 
   select(x, predicted, outcome)
 
 # predicted citation values
-schol.ai <- 
-  predict_response(schol.m.ai,
-                   terms= "authors.n [all]") %>% 
-  as.data.frame() %>% 
-  mutate(outcome = 'scholarly article citations') %>% 
-  select(x, predicted, outcome)
-
-schol.covid <- 
-  predict_response(schol.m.covid,
-                   terms= "authors.n [all]") %>% 
-  as.data.frame() %>% 
-  mutate(outcome = 'scholarly article citations') %>% 
-  select(x, predicted, outcome)
-
-schol.terror <- 
-  predict_response(schol.m.terror,
+schol <- 
+  predict_response(schol.m,
                    terms= "authors.n [all]") %>% 
   as.data.frame() %>% 
   mutate(outcome = 'scholarly article citations') %>% 
   select(x, predicted, outcome)
 
 # Predicted news mention values
-news.ai <- 
-  predict_response(news.m.ai,
-                   terms= "authors.n [all]") %>% 
-  as.data.frame() %>% 
-  mutate(outcome = 'news citations') %>% 
-  select(x, predicted, outcome)
-
-news.covid <- 
-  predict_response(news.m.covid,
-                   terms= "authors.n [all]") %>% 
-  as.data.frame() %>% 
-  mutate(outcome = 'news citations') %>% 
-  select(x, predicted, outcome)
-
-news.terror <- 
-  predict_response(news.m.terror,
+news <- 
+  predict_response(news.m,
                    terms= "authors.n [all]") %>% 
   as.data.frame() %>% 
   mutate(outcome = 'news citations') %>% 
   select(x, predicted, outcome)
 
 # predicted policy making values
-poli.ai <-
-  predict_response(policy.m.ai,
+poli <-
+  predict_response(policy.m,
                    terms= "authors.n [all]") %>% 
   as.data.frame() %>% 
   mutate(outcome = 'policy document citations') %>% 
   select(x, predicted, outcome)
 
-poli.covid <-
-  predict_response(policy.m.covid,
-                   terms= "authors.n [all]") %>% 
-  as.data.frame() %>% 
-  mutate(outcome = 'policy document citations') %>% 
-  select(x, predicted, outcome)
-
-poli.terror <-
-  predict_response(policy.m.terror,
-                   terms= "authors.n [all]") %>% 
-  as.data.frame() %>% 
-  mutate(outcome = 'policy document citations') %>% 
-  select(x, predicted, outcome)
-
-DF.fig.ai <- rbind(speed.ai, schol.ai, 
-                news.ai, poli.ai)
-
-DF.fig.covid <- rbind(speed.covid, schol.covid, 
-                news.covid, poli.covid)
-
-DF.fig.terror <- rbind(speed.terror, schol.terror, 
-                news.terror, poli.terror)
-
-rm(speed.ai, schol.ai, news.ai, poli.ai,
-   speed.m.ai, schol.m.ai, policy.m.ai, news.m.ai,
-   speed.covid, schol.covid, news.covid, poli.covid,
-   speed.m.covid, schol.m.covid, policy.m.covid, news.m.covid,
-   speed.terror, schol.terror, news.terror, poli.terror,
-   speed.m.terror, schol.m.terror, policy.m.terror, news.m.terror)
 ```
 
 Plot
 ```{r}
-# AI plot
-ggplot(data = DF.fig.ai,
+# Scholarly citation plot
+ggplot(data = schol,
        aes(x = x,
            y = predicted,
            label = outcome)) +
   
   # citation
   geom_textsmooth(
-    data = DF.fig.ai %>% 
-      filter(outcome == 'scholarly article citations'),
+    data = schol,
     method = 'lm',
     formula = y ~ log(x),
     alpha = .7,
-    color = '#CC79A7')+
+    color = '#CC79A7') +
   
-  # news
+  labs(x = '# of co-authors',
+       y = "average percentile") +
+  
+  theme(panel.background = element_rect(fill = "#F5F5F5"))
+
+
+# News plot
+ggplot(data = news,
+       aes(x = x,
+           y = predicted,
+           label = outcome)) +
   geom_textsmooth(
-    data = DF.fig.ai %>% 
-      filter(outcome == 'news citations'),
+    data = news,
     method = 'lm',
     formula = y ~ x + I(x^2),
     alpha = .7,
     color = '#0072B2') +
-
+  labs(x = '# of co-authors',
+       y = "average percentile") +
   
-  # policy
+  theme(panel.background = element_rect(fill = "#F5F5F5"))
+
+
+# Policy plot
+ggplot(data = poli,
+       aes(x = x,
+           y = predicted,
+           label = outcome)) +
   geom_textsmooth(
-    data = DF.fig.ai %>% 
-      filter(outcome == 'policy document citations'),
+    data = poli,
     method = 'lm',
     formula = y ~ x + I(x^2),
     alpha = .7,
     color = '#D55E00') +
+  labs(x = '# of co-authors',
+       y = "average percentile") +
+  
+  theme(panel.background = element_rect(fill = "#F5F5F5"))
   
   # speed
+ggplot(data = speed,
+       aes(x = x,
+           y = predicted,
+           label = outcome)) +
   geom_textsmooth(
-    data = DF.fig.ai %>% 
-      filter(outcome == 'response speed'),
+    data = speed,
     method = 'lm',
     formula = y ~ x + I(x^2),
     alpha = .7,
@@ -291,104 +179,4 @@ ggplot(data = DF.fig.ai,
   
   theme(panel.background = element_rect(fill = "#F5F5F5"))
 
-```
-
-```{r}
-# COVID plot
-ggplot(data = DF.fig.covid,
-       aes(x = x,
-           y = predicted,
-           label = outcome)) +
-  
-  # citation
-  geom_textsmooth(
-    data = DF.fig.covid %>% 
-      filter(outcome == 'scholarly article citations'),
-    method = 'lm',
-    formula = y ~ log(x),
-    alpha = .7,
-    color = '#CC79A7')+
-  
-  # news
-  geom_textsmooth(
-    data = DF.fig.covid %>% 
-      filter(outcome == 'news citations'),
-    method = 'lm',
-    formula = y ~ x + I(x^2),
-    alpha = .7,
-    color = '#0072B2') +
-
-  
-  # policy
-  geom_textsmooth(
-    data = DF.fig.covid %>% 
-      filter(outcome == 'policy document citations'),
-    method = 'lm',
-    formula = y ~ x + I(x^2),
-    alpha = .7,
-    color = '#D55E00') +
-  
-  # speed
-  geom_textsmooth(
-    data = DF.fig.covid %>% 
-      filter(outcome == 'response speed'),
-    method = 'lm',
-    formula = y ~ x + I(x^2),
-    alpha = .7,
-    color = '#009E73') +
-  
-  labs(x = '# of co-authors',
-       y = "average percentile")+
-  
-  theme(panel.background = element_rect(fill = "#F5F5F5"))
-```
-
-```{r}
-# Terrorism plot
-ggplot(data = DF.fig.terror,
-       aes(x = x,
-           y = predicted,
-           label = outcome)) +
-  
-  # citation
-  geom_textsmooth(
-    data = DF.fig.terror %>% 
-      filter(outcome == 'scholarly article citations'),
-    method = 'lm',
-    formula = y ~ log(x),
-    alpha = .7,
-    color = '#CC79A7')+
-  
-  # news
-  geom_textsmooth(
-    data = DF.fig.terror %>% 
-      filter(outcome == 'news citations'),
-    method = 'lm',
-    formula = y ~ x + I(x^2),
-    alpha = .7,
-    color = '#0072B2') +
-
-  
-  # policy
-  geom_textsmooth(
-    data = DF.fig.terror %>% 
-      filter(outcome == 'policy document citations'),
-    method = 'lm',
-    formula = y ~ x + I(x^2),
-    alpha = .7,
-    color = '#D55E00') +
-  
-  # speed
-  geom_textsmooth(
-    data = DF.fig.terror %>% 
-      filter(outcome == 'response speed'),
-    method = 'lm',
-    formula = y ~ x + I(x^2),
-    alpha = .7,
-    color = '#009E73') +
-  
-  labs(x = '# of co-authors',
-       y = "average percentile")+
-  
-  theme(panel.background = element_rect(fill = "#F5F5F5"))
 ```
